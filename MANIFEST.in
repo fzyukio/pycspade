@@ -1,0 +1,2 @@
+recursive-include cspade *.c *.h *.py *.pyx *.ipynb
+include README.md
