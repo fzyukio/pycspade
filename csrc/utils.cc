@@ -1,4 +1,5 @@
 #include "utils.h"
+std::ostringstream *_logger = new std::ostringstream();
 
 int cmp2it(const void *a, const void *b) {
     int *ary = (int *) a;

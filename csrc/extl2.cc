@@ -49,7 +49,7 @@ void invdb::incr(int sz) {
     int oldsz = numcust;
     numcust = sz;
 
-    //std::cout << "INCR SIZE " << sz << " "<< oldsz << std::endl;
+    //logger << "INCR SIZE " << sz << " "<< oldsz << std::endl;
 
     curit = (int **) realloc(curit, numcust * sizeof(int *));
     curcnt = (int *) realloc(curcnt, numcust * ITSZ);
@@ -70,17 +70,18 @@ void invdb::incr(int sz) {
 }
 
 void invdb::incr_curit(int midx) {
-    //std::cout << "OLD " << curitsz[midx] << std::endl;
+    //logger << "OLD " << curitsz[midx] << std::endl;
     curitsz[midx] = (int) (2 * curitsz[midx]);
-    //std::cout << "NEW " << curitsz[midx] << std::endl;
+    //logger << "NEW " << curitsz[midx] << std::endl;
     curit[midx] = (int *) realloc(curit[midx], curitsz[midx] * ITSZ);
     if (curit[midx] == NULL) {
         throw std::runtime_error("REALLCO  curit");
     }
-    //std::cout << "INCR " << midx << " " << curitsz[midx] << std::endl;
+    //logger << "INCR " << midx << " " << curitsz[midx] << std::endl;
 }
 
 void print_idlist(int *ival, int supsz) {
+    std::ostringstream& logger = *_logger;
     int i, cid, cnt;
 
     if (supsz > 0) {
@@ -91,12 +92,12 @@ void print_idlist(int *ival, int supsz) {
                 cnt++;
                 i += 2;
             } else {
-                std::cout << cid << " " << cnt << " ";
+                logger << cid << " " << cnt << " ";
                 cid = ival[i];
                 cnt = 0;
             }
         }
-        std::cout << cid << " " << cnt;
+        logger << cid << " " << cnt;
     }
 }
 
@@ -194,10 +195,10 @@ void process_cust_invert(int cid, int curcnt, int *curit) {
     int nv1, nv2, diff;
     int it1, it2;
 
-    //std::cout << "PROCESS " << cid << " " << curcnt << " -- ";
+    //logger << "PROCESS " << cid << " " << curcnt << " -- ";
     //for (i=0; i < curcnt; ++i)
-    //    std::cout << " " << curit[i];
-    //std::cout << std::endl;
+    //    logger << " " << curit[i];
+    //logger << std::endl;
 
     for (i = 0; i < curcnt; i = nv1) {
         nv1 = i;
@@ -251,7 +252,7 @@ void process_invert(int pnum) {
     int i, k;
     int minv, maxv;
     partition_get_minmaxcustid(F1::backidx, F1::numfreq, pnum, minv, maxv);
-    //std::cout << "MVAL " << minv << " " << maxv << std::endl;
+    //logger << "MVAL " << minv << " " << maxv << std::endl;
     if (invDB->numcust < maxv - minv + 1)
         invDB->incr(maxv - minv + 1);
 
@@ -267,7 +268,7 @@ void process_invert(int pnum) {
                 throw std::runtime_error("IVAL NULL");
             }
         }
-        //std::cout << "READ " << i << " " << F1::backidx[i] << std::endl;
+        //logger << "READ " << i << " " << F1::backidx[i] << std::endl;
         partition_lclread_item(ival, pnum, F1::backidx[i]);
 
         int cid;
@@ -296,8 +297,8 @@ void process_invert(int pnum) {
 
 
 //return 1 to prune, else 0
-char extl2_pre_pruning(int totsup, int it, int pit, char use_seq,
-                       unsigned int *clsup = NULL) {
+char extl2_pre_pruning(int totsup, int it, int pit, char use_seq, unsigned int *clsup = NULL) {
+    std::ostringstream& logger = *_logger;
     float conf, conf2;
     int itsup;
     if (pruning_type == NOPRUNING) return 0;
@@ -306,14 +307,14 @@ char extl2_pre_pruning(int totsup, int it, int pit, char use_seq,
         itsup = F1::get_sup(it);
         conf = (1.0 * totsup) / itsup;
         conf2 = (1.0 * totsup) / F1::get_sup(pit);
-        //std::cout << "prune " << conf << " " << totsup << " " << itsup << std::endl;
+        //logger << "prune " << conf << " " << totsup << " " << itsup << std::endl;
         if (conf >= FOLLOWTHRESH || conf2 >= FOLLOWTHRESH) {
             if (outputfreq) {
-                std::cout << "PRUNE_EXT " << pit << (use_seq ? " -2 " : " ")
+                logger << "PRUNE_EXT " << pit << (use_seq ? " -2 " : " ")
                      << it << " -1 " << totsup;
                 for (int i = 0; i < NUMCLASS; i++)
-                    std::cout << " " << clsup[i];
-                std::cout << std::endl;
+                    logger << " " << clsup[i];
+                logger << std::endl;
             }
             prepruning++;
             return 1;
@@ -350,20 +351,20 @@ void get_F2(int &l2cnt) {
                     if (!extl2_pre_pruning(fcnt, F1::backidx[k],
                                            F1::backidx[j], use_seq, set_sup[j][k - j - 1])) {
                         suffix_add_item_eqgraph(use_seq, F1::backidx[j], F1::backidx[k]);
-                        //std::cout << F1::backidx[j] << " " << F1::backidx[k];
+                        //logger << F1::backidx[j] << " " << F1::backidx[k];
                         for (i = 0; i < NUMCLASS; i++) {
                             int ffcnt = set_sup[j][k - j - 1][i];
-                            //std::cout << " " << fcnt;
+                            //logger << " " << fcnt;
                             eqgraph[F1::backidx[k]]->add_sup(ffcnt, i);
                         }
-                        //std::cout << std::endl;
+                        //logger << std::endl;
                         l2cnt++;
                     }
                     //if (outputfreq){
-                    //   std::cout << F1::backidx[j] << " " << F1::backidx[k] << " -2";
+                    //   logger << F1::backidx[j] << " " << F1::backidx[k] << " -2";
                     //   for (i=0; i < NUMCLASS; i++)
-                    //      std::cout << " " << set_sup[j][k-j-1][i];
-                    //   std::cout << " " << fcnt << std::endl;
+                    //      logger << " " << set_sup[j][k-j-1][i];
+                    //   logger << " " << fcnt << std::endl;
                     //}
                 }
             }
@@ -391,19 +392,19 @@ void get_F2(int &l2cnt) {
                                            F1::backidx[j], use_seq, seq_sup[j][k])) {
                         suffix_add_item_eqgraph(use_seq, F1::backidx[j], F1::backidx[k]);
                         l2cnt++;
-                        //std::cout << F1::backidx[j] << " -1 " << F1::backidx[k] << " -2 ";
+                        //logger << F1::backidx[j] << " -1 " << F1::backidx[k] << " -2 ";
                         for (i = 0; i < NUMCLASS; i++) {
                             int ffcnt = seq_sup[j][k][i];
-                            //std::cout << fcnt << " ";
+                            //logger << fcnt << " ";
                             eqgraph[F1::backidx[k]]->add_seqsup(ffcnt, i);
                         }
-                        //std::cout << std::endl;
+                        //logger << std::endl;
                     }
                     //if (outputfreq){
-                    //  std::cout << F1::backidx[j] << " -1 " << F1::backidx[k] << " -2";
+                    //  logger << F1::backidx[j] << " -1 " << F1::backidx[k] << " -2";
                     //   for (i=0; i < NUMCLASS; i++)
-                    //      std::cout << " " << seq_sup[j][k][i];
-                    //   std::cout << " " << fcnt << std::endl;
+                    //      logger << " " << seq_sup[j][k][i];
+                    //   logger << " " << fcnt << std::endl;
                     //}
                 }
             }
@@ -514,7 +515,7 @@ void get_l2file(char *fname, char use_seq, int &l2cnt) {
             for (j = 0; j < NUMCLASS; j++) {
                 if (cntary[i + 2] >= ClassInfo::MINSUP[j]) {
                     lflg = 1;
-                    //std::cout << "FILELARGE " << cntary[i] << ((use_seq)?"->":" ")
+                    //logger << "FILELARGE " << cntary[i] << ((use_seq)?"->":" ")
                     //     << cntary[i+1] << " SUPP " << cntary[i+2] << std::endl;
                     break;
                 }
@@ -532,12 +533,12 @@ void get_l2file(char *fname, char use_seq, int &l2cnt) {
                         else eqgraph[cntary[i + 1]]->add_sup(0, j);
                 }
                 //if (outputfreq){
-                //  std::cout << cntary[i] << ((use_seq)?" -1 ":" ") << cntary[i+1]
+                //  logger << cntary[i] << ((use_seq)?" -1 ":" ") << cntary[i+1]
                 //        << " -2";
-                //   std::cout << " " << cntary[i+2];
-                //   for (j=1; j < NUMCLASS; j++) std::cout << " 0";
-                //   std::cout << " " << cntary[i+2];
-                //   std::cout << std::endl;
+                //   logger << " " << cntary[i+2];
+                //   for (j=1; j < NUMCLASS; j++) logger << " 0";
+                //   logger << " " << cntary[i+2];
+                //   logger << std::endl;
                 //}
             }
         }

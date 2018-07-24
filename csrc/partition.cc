@@ -76,7 +76,7 @@ int partition_get_max_blksz() {
 
 void partition_get_blk(int *MAINBUF, int p) {
     int flen = lseek(DATAFD[p], 0, SEEK_END);
-//    std::cout << "FILESZ " << flen << std::endl;
+//    logger << "FILESZ " << flen << std::endl;
     lseek(DATAFD[p], 0, SEEK_SET);
     if (read(DATAFD[p], (char *) MAINBUF, flen) < 0) {
         throw std::runtime_error("read item1");
@@ -170,7 +170,7 @@ extern int DBASE_NUM_TRANS;
 ClassInfo::ClassInfo(char use_class, char *classf) {
     int i, numtrans, maxval;
     if (use_class) {
-        //std::cout << "FILE " << classf << std::endl << flush;
+        //logger << "FILE " << classf << std::endl << flush;
         fd = open(classf, O_RDONLY);
         if (fd < 0) {
             throw std::invalid_argument("ERROR: InvalidClassFile\n");
@@ -193,7 +193,7 @@ ClassInfo::ClassInfo(char use_class, char *classf) {
         }
     }
 
-    //std::cout << "NUMCLAS " << NUMCLASS << std::endl << std::flush;
+    //logger << "NUMCLAS " << NUMCLASS << std::endl << std::flush;
     CLASSCNT = new int[NUMCLASS];
     TMPE = new int[NUMCLASS];
     TMPM = new int[NUMCLASS];
@@ -213,7 +213,7 @@ ClassInfo::ClassInfo(char use_class, char *classf) {
     for (i = 0; i < NUMCLASS; i++) {
         MINSUP[i] = (int) (MINSUP_PER * CLASSCNT[i] + 0.5);
         if (MINSUP[i] < 1) MINSUP[i] = 1;
-        //std::cout << "CLASS " << i << " " << CLASSCNT[i] << " " << MINSUP[i] << std::endl;
+        //logger << "CLASS " << i << " " << CLASSCNT[i] << " " << MINSUP[i] << std::endl;
     }
 }
 

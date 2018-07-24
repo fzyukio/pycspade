@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sstream>
+#include <vector>
 #include "Eqclass.h"
 #include "extl2.h"
 #include "maxgap.h"
@@ -62,12 +63,13 @@ void add_freq(Itemset *it, int templ) {
 }
 
 void print_freqary() {
+    std::ostringstream& logger = *_logger;
     int j = 0;
-    std::cout << "FREQARRAY " << FreqArrayPos << ":" << std::endl;
+    logger << "FREQARRAY " << FreqArrayPos << ":" << std::endl;
     for (j = 0; j < FreqArrayPos; j++) {
-        std::cout << *FreqArray[j];
+        logger << *FreqArray[j];
     }
-    std::cout << "!!!!!!!!!!!!!!!!!!!!" << std::endl;
+    logger << "!!!!!!!!!!!!!!!!!!!!" << std::endl;
 }
 
 
@@ -303,25 +305,25 @@ void pre_pruning(Itemset *&join, unsigned int ptempl, Itemset *clas, Itemset *pr
     int nsz = clas->size() - 2;
     if (GETBIT(pruning_type, FOLLOWPRUNING - 1)) {
 
-        //std::cout << "FOLLOW " << pit << (use_seq?" -1 ":" ");
+        //logger << "FOLLOW " << pit << (use_seq?" -1 ":" ");
         //clas->print_seq(SETBIT(ptempl,1,nsz+1));
 
         for (i = 0; i <= nsz + 1 && !bitval; i++) {
             cit = (*clas)[i];
-            //std::cout << cit << " " << pit << " FOLLOW " << *clas;
+            //logger << cit << " " << pit << " FOLLOW " << *clas;
             if (use_seq) {
                 return; //TURN OFF FOR SEQUENCES
 
                 res = eqgraph[cit]->seqfind(pit);
                 if (res != -1) {
                     conf = (eqgraph[cit]->get_seqsup(res) * 1.0) / F1::get_sup(cit);
-                    //std::cout << "RES " << conf << " " << pit << " -1 " << cit << " "
+                    //logger << "RES " << conf << " " << pit << " -1 " << cit << " "
                     //     << res << " "<< eqgraph[cit]->get_seqsup(res) << " "
                     //     << F1::get_sup(cit) << std::endl;
                     if (conf >= FOLLOWTHRESH) {
-                        //std::cout << "PRUNE_PRE " << ptempl << " : " << *join;
+                        //logger << "PRUNE_PRE " << ptempl << " : " << *join;
                         if (outputfreq) {
-//                            std::cout << "PRUNE_PRE " << pit << " -1 ";
+//                            logger << "PRUNE_PRE " << pit << " -1 ";
                             clas->print_seq(SETBIT(ptempl, 1, nsz + 1), out);
                         }
                         prepruning++;
@@ -334,16 +336,16 @@ void pre_pruning(Itemset *&join, unsigned int ptempl, Itemset *clas, Itemset *pr
                 if (res != -1) {
                     conf = (eqgraph[cit]->get_sup(res) * 1.0) / F1::get_sup(cit);
                     conf2 = (eqgraph[cit]->get_sup(res) * 1.0) / F1::get_sup(pit);
-                    //std::cout << "RES " << conf << " " << pit << " " << cit << " "
+                    //logger << "RES " << conf << " " << pit << " " << cit << " "
                     //     << res << " " << eqgraph[cit]->get_seqsup(res) << " "
                     //     << F1::get_sup(cit) << std::endl;
                     if (conf >= FOLLOWTHRESH || conf2 >= FOLLOWTHRESH) {
                         if (outputfreq) {
-//                            std::cout << "PRUNE_PRE " << pit << " ";
+//                            logger << "PRUNE_PRE " << pit << " ";
                             clas->print_seq(SETBIT(ptempl, 1, nsz + 1), out);
                         }
-                        //std::cout << "PRUNE_PRE " << ptempl << " : " << *join;
-                        //std::cout << "PRUNE " << pit << " " << cit << " " << conf << std::endl;
+                        //logger << "PRUNE_PRE " << ptempl << " : " << *join;
+                        //logger << "PRUNE " << pit << " " << cit << " " << conf << std::endl;
                         prepruning++;
                         join = NULL;
                         break;
@@ -355,7 +357,7 @@ void pre_pruning(Itemset *&join, unsigned int ptempl, Itemset *clas, Itemset *pr
         }
     }
     //if (join == NULL){
-    //   std::cout << "PRUNEXX_PRE " << conf << " " << *join;
+    //   logger << "PRUNEXX_PRE " << conf << " " << *join;
     //}
 
 }
@@ -372,7 +374,7 @@ void post_pruning(Itemset *&iset, unsigned int templ, std::ostream &out) {
             remdb = ClassInfo::getcnt() - ClassInfo::getcnt(i);
             if (remsup / remdb <= ZEROTHRESH) {
                 if (outputfreq) {
-//                    std::cout << "PRUNE_POST ";
+//                    logger << "PRUNE_POST ";
                     iset->print_seq(templ, out);
                 }
                 postpruning++;
@@ -396,6 +398,7 @@ void fill_seq_template(Eqclass *EQ, Eqclass *parent, int LR) {
 }
 
 int get_valid_el(int it, char *ibvec, char *sbvec) {
+    std::ostringstream& logger = *_logger;
     int i, j;
     int i1, i2;
     int rval = 0;
@@ -459,7 +462,7 @@ int get_valid_el(int it, char *ibvec, char *sbvec) {
         if (!sbvec[i]) {
             L2pruning++;
             if (outputfreq) {
-                std::cout << "PRUNE_L2 " << it << " -1 " << eqgraph[it]->seqget_element(i)
+                logger << "PRUNE_L2 " << it << " -1 " << eqgraph[it]->seqget_element(i)
                           << " " << eqgraph[it]->get_seqsup(i) << std::endl;
             }
         }
@@ -468,7 +471,7 @@ int get_valid_el(int it, char *ibvec, char *sbvec) {
         if (!ibvec[i]) {
             L2pruning++;
             if (outputfreq) {
-                std::cout << "PRUNE_L2 " << it << " " << eqgraph[it]->get_element(i)
+                logger << "PRUNE_L2 " << it << " " << eqgraph[it]->get_element(i)
                           << " " << eqgraph[it]->get_sup(i) << std::endl;
             }
         }
@@ -533,7 +536,7 @@ Eqclass *get_ext_eqclass(int it, bool use_maxgap, std::ostream &out) {
             k++;
             it2 = tmpit;
         }
-        //std::cout << "JOIN " << it << " " << it2 << " " << ejoin << " " << ljoin << std::endl << std::flush;
+        //logger << "JOIN " << it << " " << it2 << " " << ejoin << " " << ljoin << std::endl << std::flush;
         supsz2 = partition_get_idxsup(it2);
 
         partition_read_item(interval2->array(), it2);
@@ -550,7 +553,7 @@ Eqclass *get_ext_eqclass(int it, bool use_maxgap, std::ostream &out) {
                 throw std::runtime_error("memory exceeded");
             }
         } else ljoin = NULL;
-        //std::cout << "ljoin " << ljoin << " " << ejoin << " " <<
+        //logger << "ljoin " << ljoin << " " << ejoin << " " <<
         //supsz << " " << supsz2 << " " << it << " " << it2 << std::endl;
 
         get_2newf_intersect(ljoin, ejoin, interval2->array(), interval->array(),
@@ -660,14 +663,14 @@ Itemset *prune_decision(Itemset *it1, Itemset *it2, unsigned int ptempl, int jfl
             fit.templ = ttpl;
 
             //???? Does this work for suffix classes
-            //std::cout << "SEARCH " << fit;
+            //logger << "SEARCH " << fit;
             if (fit.seq[fit.size() - 1] == (*it1)[it1->size() - 1] && !recursive) {
                 //elements should be in current class
                 if (FreqArrayPos > 0) {
                     if (!EqGrNode::bsearch(0, FreqArrayPos - 1, FreqArray,
                                            fit, recursive)) {
                         //print_freqary();
-                        //std::cout << "NOT FOUND " << std::endl;
+                        //logger << "NOT FOUND " << std::endl;
                         return NULL;
                     }
                 } else return NULL;
@@ -692,7 +695,7 @@ Itemset *prune_decision(Itemset *it1, Itemset *it2, unsigned int ptempl, int jfl
                         return NULL;
                 }
             } else return NULL;
-            //std::cout << "FOUND " << std::endl;
+            //logger << "FOUND " << std::endl;
             if (nsz - i >= 0) bit = GETBIT(ptempl, nsz - i);
         }
     }
@@ -734,9 +737,9 @@ void process_cluster_list1(ListNodes<Itemset *> *hdr1, Lists<Itemset *> *cluster
     //int first;
     Itemset *ljoin, *ejoin, *mjoin;
     int lsup, esup, msup;
-    //std::cout << "BEG CLUSERT 1 : " << MEMUSED << std::endl;
+    //logger << "BEG CLUSERT 1 : " << MEMUSED << std::endl;
 
-    //std::cout << "PROCESS " << *hdr1->item() << std::endl;
+    //logger << "PROCESS " << *hdr1->item() << std::endl;
     //first = 1;
     hdr2 = cluster2->head();
     for (; hdr2; hdr2 = hdr2->next()) {
@@ -745,7 +748,7 @@ void process_cluster_list1(ListNodes<Itemset *> *hdr1, Lists<Itemset *> *cluster
         ejoin = NULL;
         mjoin = NULL;
         lsup = esup = msup = 0;
-        //std::cout << "process 1 0 0" << std::endl;
+        //logger << "process 1 0 0" << std::endl;
         if (pruning_type > 1)
             pre_pruning(ljoin, EQ->templ(), hdr1->item(), hdr2->item(), 1, out);
         if (ljoin)
@@ -756,7 +759,7 @@ void process_cluster_list1(ListNodes<Itemset *> *hdr1, Lists<Itemset *> *cluster
         if (ljoin) {
             NumLargeItemset[iter - 1]++;
             //fill_join(ljoin, hdr1->item(), hdr2->item());
-            //std::cout << "XXLARGE ";
+            //logger << "XXLARGE ";
             if (outputfreq) ljoin->print_seq(EQ->templ(), out);
             EQ->append(ljoin);
         }
@@ -771,19 +774,19 @@ void process_cluster_list1(ListNodes<Itemset *> *hdr1, Lists<Itemset *> *cluster
         ljoin = NULL;
         mjoin = NULL;
         lsup = esup = msup = 0;
-        //std::cout << "process 0 1 0" << std::endl;
+        //logger << "process 0 1 0" << std::endl;
         if (pruning_type > 1)
             pre_pruning(ejoin, EQ->templ2(), hdr1->item(), hdr2->item(), 0, out);
         if (ejoin)
             get_tmpnewf_intersect(ljoin, ejoin, mjoin, lsup, esup, msup, hdr2->item(), hdr1->item(), iter,
                                   min_support_all);
-        //std::cout << "AFT JOIN " << MEMUSED << std::endl;
+        //logger << "AFT JOIN " << MEMUSED << std::endl;
         if (ejoin) fill_join(ejoin, hdr1->item(), hdr2->item());
         if (pruning_type > 1) post_pruning(ejoin, EQ->templ2(), out);
         if (ejoin) {
             NumLargeItemset[iter - 1]++;
             //fill_join(ejoin, hdr1->item(), hdr2->item());
-            //std::cout << "XXXLARGE ";
+            //logger << "XXXLARGE ";
             if (outputfreq) ejoin->print_seq(EQ->templ2(), out);
             EQ->append2(ejoin);
         }
@@ -803,7 +806,7 @@ void process_cluster_list1(ListNodes<Itemset *> *hdr1, Lists<Itemset *> *cluster
             EQ = NULL;
         }
     }
-    //std::cout << "END CLUSTER1 : " << MEMUSED << std::endl;
+    //logger << "END CLUSTER1 : " << MEMUSED << std::endl;
 }
 
 void process_cluster_list2(ListNodes<Itemset *> *hdr1, int i, Eqclass **EQ, Lists<Itemset *> *cluster,
@@ -826,7 +829,7 @@ void process_cluster_list2(ListNodes<Itemset *> *hdr1, int i, Eqclass **EQ, List
             mjoin = prune_decision(hdr2->item(), hdr1->item(), EQ[i]->templ(), MJOIN, use_maxgap, use_hash, recursive);
             //ejoin = mjoin = (Itemset *)1;
         }
-        //std::cout << "process 1 1 1" << std::endl;
+        //logger << "process 1 1 1" << std::endl;
         lsup = esup = msup = 0;
         if (pruning_type > 1) {
             pre_pruning(ejoin, EQ[i]->templ2(), hdr1->item(), hdr2->item(), 0, out);
@@ -837,13 +840,13 @@ void process_cluster_list2(ListNodes<Itemset *> *hdr1, int i, Eqclass **EQ, List
         if (ljoin || ejoin || mjoin)
             get_tmpnewf_intersect(ljoin, ejoin, mjoin, lsup, esup, msup, hdr1->item(), hdr2->item(), iter,
                                   min_support_all);
-        //std::cout << "SUPPP " << lsup << " " << esup << " " << msup << std::endl;
+        //logger << "SUPPP " << lsup << " " << esup << " " << msup << std::endl;
         if (ljoin) fill_join(ljoin, hdr2->item(), hdr1->item());
         if (pruning_type > 1) post_pruning(ljoin, EQ[j]->templ(), out);
         if (ljoin) {
             NumLargeItemset[iter - 1]++;
             //fill_join(ljoin, hdr2->item(), hdr1->item());
-            //std::cout << "LARGE ";
+            //logger << "LARGE ";
             if (outputfreq) ljoin->print_seq(EQ[j]->templ(), out);
             EQ[j]->append(ljoin);
         }
@@ -853,7 +856,7 @@ void process_cluster_list2(ListNodes<Itemset *> *hdr1, int i, Eqclass **EQ, List
         if (ejoin) {
             NumLargeItemset[iter - 1]++;
             //fill_join(ejoin, hdr1->item(), hdr2->item());
-            //std::cout << "LARGE ";
+            //logger << "LARGE ";
             if (outputfreq) ejoin->print_seq(EQ[i]->templ2(), out);
             EQ[i]->append2(ejoin);
         }
@@ -863,7 +866,7 @@ void process_cluster_list2(ListNodes<Itemset *> *hdr1, int i, Eqclass **EQ, List
         if (mjoin) {
             NumLargeItemset[iter - 1]++;
             //fill_join(mjoin, hdr1->item(), hdr2->item());
-            //std::cout << "LARGE ";
+            //logger << "LARGE ";
             if (outputfreq) mjoin->print_seq(EQ[i]->templ(), out);
             EQ[i]->append(mjoin);
         }
@@ -882,7 +885,7 @@ void process_cluster_list2(ListNodes<Itemset *> *hdr1, int i, Eqclass **EQ, List
         EQ[i] = NULL;
     }
 
-    //std::cout << "END cluster 2 : " << MEMUSED << std::endl;
+    //logger << "END cluster 2 : " << MEMUSED << std::endl;
 }
 
 void process_cluster1(Eqclass *cluster, Lists<Eqclass *> *LargeL, int iter, bool use_maxgap, bool use_hash,
@@ -1010,11 +1013,11 @@ void newSeq(int use_ascending, bool use_maxgap, bool use_hash, bool recursive, i
 
                 if (use_hash) {
                     if (FreqArrayPos > 0) {
-                        //std::cout << "FREQUENT ARRAY3" << std::endl;
+                        //logger << "FREQUENT ARRAY3" << std::endl;
                         FreqIt **fit = new FreqIt *[FreqArrayPos];
                         for (j = 0; j < FreqArrayPos; j++) {
                             fit[j] = FreqArray[j];
-                            //std::cout << *fit[j];
+                            //logger << *fit[j];
                         }
                         eqgraph[i]->set_freqarray(fit, FreqArrayPos);
                     }
@@ -1061,13 +1064,14 @@ void read_files(bool ext_l2_pass, char *it2f, char *seqf, std::ostream &out) {
     interval3 = new Array(maxitemsup);
 }
 
-std::string
+std::vector<std::string>
 mine(const std::string &dbname, double min_support_one, int min_support_all = -1, int use_ascending = -2,
      bool use_class = false,
      int _num_partitions = 1, bool ext_l2_pass = false, bool use_hash = false, int _min_gap = 1, int avaimem_mb = 128,
      bool _outputfreq = false, bool recursive = false, int pruning_type = NOPRUNING,
      int _max_gap = 0, bool use_window = false, int _max_seq_len = 100, int _max_iset_len = 100
 ) {
+    std::ostringstream& logger = *_logger;
     char dataf[300];
     char idxf[300];
     char conf[300];
@@ -1111,7 +1115,7 @@ mine(const std::string &dbname, double min_support_one, int min_support_all = -1
     }
     read(c, (char *) &DBASE_NUM_TRANS, ITSZ);
 
-    std::cout << "min_support_all " << min_support_all << " out of " << DBASE_NUM_TRANS << " sequences" << std::endl;
+    logger << "min_support_all " << min_support_all << " out of " << DBASE_NUM_TRANS << " sequences" << std::endl;
     read(c, (char *) &DBASE_MAXITEM, ITSZ);
     read(c, (char *) &DBASE_AVG_CUST_SZ, sizeof(float));
     read(c, (char *) &DBASE_AVG_TRANS_SZ, sizeof(float));
@@ -1140,11 +1144,15 @@ mine(const std::string &dbname, double min_support_one, int min_support_all = -1
             delete eqgraph[i];
     }
     delete[] eqgraph;
-    return seqout.str();
+    std::vector<std::string> retval;
+    retval.push_back(seqout.str());
+    retval.push_back(logger.str());
+    return retval;
 }
 
 
 int main(int argc, char **argv) {
+    std::ostringstream& logger = *_logger;
 
     convert_bin("test.ascii.data", "test.data");
 
@@ -1167,7 +1175,7 @@ int main(int argc, char **argv) {
      * e.g.: run "./spade -e 1 -r -i test -s 0.2 -u 2 -o"
      * this means max gap between events is 2, and minsup is 20% or 2/10
      */
-    std::string seq = mine(
+    std::vector<std::string> outcomes = mine(
             /* char *dbname, */ "test",
             /* double min_support_one, */ 0.2,
             /* int min_support_all = -1, */ -1,
@@ -1186,5 +1194,5 @@ int main(int argc, char **argv) {
             /* int _max_seq_len = 100, */ 100,
             /* int _max_iset_len = 100 */ 100
     );
-    std::cout << seq;
+    std::cout << outcomes[0];
 }

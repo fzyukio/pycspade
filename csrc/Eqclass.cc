@@ -3,6 +3,7 @@
 #include <cerrno>
 
 #include "Eqclass.h"
+#include "utils.h"
 
 Eqclass::Eqclass(int iset_sz, int eqt) {
     Iset_size = iset_sz;
@@ -42,39 +43,44 @@ Eqclass::~Eqclass() {
 }
 
 void Eqclass::print_template1() {
-    std::cout << "TEMPLATE1";
-    std::cout << " " << seqTemplate;
-    //for (i=0; i < Iset_size; i++) std::cout << " " << seqTemplate[i];
-    std::cout << std::endl;
+    std::ostringstream& logger = *_logger;
+
+    logger << "TEMPLATE1";
+    logger << " " << seqTemplate;
+    //for (i=0; i < Iset_size; i++) logger << " " << seqTemplate[i];
+    logger << std::endl;
 }
 
 void Eqclass::print_template2() {
+    std::ostringstream& logger = *_logger;
     if (seqTemplate2) {
-        std::cout << "TEMPLATE2";
-        std::cout << " " << seqTemplate2;
-        //for (i=0; i < Iset_size; i++) std::cout << " " << seqTemplate2[i];
-        std::cout << std::endl;
+        logger << "TEMPLATE2";
+        logger << " " << seqTemplate2;
+        //for (i=0; i < Iset_size; i++) logger << " " << seqTemplate2[i];
+        logger << std::endl;
     }
 }
 
 void Eqclass::print_template() {
-    std::cout << "TEMPLATE1";
-    std::cout << " " << seqTemplate;
-    //for (i=0; i < Iset_size; i++) std::cout << " " << seqTemplate[i];
-    //std::cout << std::endl;
+    std::ostringstream& logger = *_logger;
+    logger << "TEMPLATE1";
+    logger << " " << seqTemplate;
+    //for (i=0; i < Iset_size; i++) logger << " " << seqTemplate[i];
+    //logger << std::endl;
     //if (seqTemplate2){
-    std::cout << " TEMPLATE2";
-    std::cout << " " << seqTemplate2;
-    //for (i=0; i < Iset_size; i++) std::cout << " " << seqTemplate2[i];
-    std::cout << std::endl;
+    logger << " TEMPLATE2";
+    logger << " " << seqTemplate2;
+    //for (i=0; i < Iset_size; i++) logger << " " << seqTemplate2[i];
+    logger << std::endl;
     //}
 }
 
 void Eqclass::print_list(Lists<Itemset *> *ll) {
+    std::ostringstream& logger = *_logger;
     ListNodes<Itemset *> *hd = ll->head();
     for (; hd; hd = hd->next())
-        std::cout << *(hd->item());
-    std::cout << std::flush;
+        logger << *(hd->item());
+    logger << std::flush;
 }
 
 Itemset *Eqclass::uniqsorted(Itemset *it, CMP_FUNC func) {
@@ -157,7 +163,7 @@ int EqGrNode::bsearch(int min, int max, FreqIt **freqArray,
 
     int res = freqArray[mid]->compare(&fit, recursive);
     //if (fit.seq[0] == 101 || fit.seq[0] == 201)
-    //   std::cout << "RES " << res << " " << mid << " *** " << *freqArray[mid];
+    //   logger << "RES " << res << " " << mid << " *** " << *freqArray[mid];
     if (res == 0) return mid;
     else if (res < 0) return bsearch(min, mid - 1, freqArray, fit, recursive);
     else return bsearch(mid + 1, max, freqArray, fit, recursive);
@@ -181,24 +187,25 @@ int EqGrNode::find_freqarray(FreqIt &fit, int recursive) {
 
 
 std::ostream &operator<<(std::ostream &outputStream, EqGrNode &EQ) {
+    std::ostringstream& logger = *_logger;
     int i;
     if (EQ.theElements) {
-        std::cout << "SET " << *EQ.theElements << std::endl;
+        logger << "SET " << *EQ.theElements << std::endl;
         for (i = 0; i < NUMCLASS; i++)
-            std::cout << "Sup" << i << " : " << *EQ._set_sup[i] << std::endl;
-        std::cout << "Tot";
+            logger << "Sup" << i << " : " << *EQ._set_sup[i] << std::endl;
+        logger << "Tot";
         for (i = 0; i < EQ.theElements->size(); i++)
-            std::cout << " " << EQ.get_sup(i);
-        std::cout << std::endl;
+            logger << " " << EQ.get_sup(i);
+        logger << std::endl;
     }
     if (EQ.stheElements) {
-        std::cout << "SEQ " << *EQ.stheElements << std::endl;
+        logger << "SEQ " << *EQ.stheElements << std::endl;
         for (i = 0; i < NUMCLASS; i++)
-            std::cout << "SSup" << i << " : " << *EQ._seq_sup[i] << std::endl;
-        std::cout << "Tot";
+            logger << "SSup" << i << " : " << *EQ._seq_sup[i] << std::endl;
+        logger << "Tot";
         for (i = 0; i < EQ.stheElements->size(); i++)
-            std::cout << " " << EQ.get_seqsup(i);
-        std::cout << std::endl;
+            logger << " " << EQ.get_seqsup(i);
+        logger << std::endl;
     }
 
     return outputStream;

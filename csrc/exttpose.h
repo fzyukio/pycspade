@@ -19,7 +19,7 @@
  * @param no_minus_off = true
  * @return
  */
-extern std::string _exttpose(const std::string& dbname, int num_partitions = 1, double min_support = 0., bool twoseq = false,
+extern std::vector<std::string> _exttpose(const std::string& dbname, int num_partitions = 1, double min_support = 0., bool twoseq = false,
                      bool use_diff = false, bool do_l2 = true, bool do_invert = true, bool use_newformat = true,
                      int maxmem = 32, bool no_minus_off = false);
 

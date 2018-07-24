@@ -23,7 +23,7 @@ Array::~Array() {
         free(theArray);
         //delete [] theArray;
         MEMUSED -= totSize * sizeof(int);
-        //std::cout << "CAME HERE " << MEMUSED <<std::endl;
+        //logger << "CAME HERE " << MEMUSED <<std::endl;
     }
     theArray = NULL;
     MEMUSED -= sizeof(Array);

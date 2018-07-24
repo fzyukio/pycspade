@@ -6,6 +6,7 @@
 #include <sys/time.h>
 #include <cmath>
 #include <sstream>
+#include <vector>
 
 #include "calcdb.h"
 #include "ArrayT.h"
@@ -27,7 +28,7 @@ void sort_get_l2(int &l2cnt, int fd, std::ofstream &ofd, int *backidx, int *freq
     if (sortflen < 0) {
         throw std::runtime_error("SEEK SEQ");
     }
-    //std::cout << "SORT " << sortflen << std::endl;
+    //logger << "SORT " << sortflen << std::endl;
     if (sortflen > 0) {
 #ifdef DEC
         sortary = (int *) mmap((char *)NULL, sortflen,
@@ -76,7 +77,7 @@ void sort_get_l2(int &l2cnt, int fd, std::ofstream &ofd, int *backidx, int *freq
                     itbuf[2] = fcnt;
                     ofd.write((char *) itbuf, 3 * ITSZ);
                 }
-                //std::cout << backidx[j] << ((use_seq)?" -> ":" ")
+                //logger << backidx[j] << ((use_seq)?" -> ":" ")
                 //     << backidx[k] << " SUPP " << fcnt << std::endl;
                 l2cnt++;
             }
@@ -139,7 +140,7 @@ void process_cust(int *fidx, int fcnt, int numfreq, int *backidx,
 void do_invert_db(CalcDb *DCB, int pblk, ArrayT **extary, int numfreq, int *freqidx, int *backidx, int *fidx,
                   int mincustid, int maxcustid, int num_partitions, char *output, bool use_diff, bool use_newformat,
                   bool use_seq) {
-    double t1, t2;
+    std::ostringstream& logger = *_logger;
     int numitem, tid, custid;
     int *buf;
     char tmpnam[300];
@@ -164,12 +165,12 @@ void do_invert_db(CalcDb *DCB, int pblk, ArrayT **extary, int numfreq, int *freq
         int plb = p * pblk + mincustid;
         int pub = plb + pblk;
         if (pub >= maxcustid) pub = maxcustid + 1;
-        std::cout << "BOUNDS " << plb << " " << pub << std::endl;
+        logger << "BOUNDS " << plb << " " << pub << std::endl;
         int fcnt;
         for (; !DCB->eof() && custid < pub;) {
             fcnt = 0;
             ocid = custid;
-            //std::cout << "TID " << custid << " " << tid << " " << numitem << std::endl;
+            //logger << "TID " << custid << " " << tid << " " << numitem << std::endl;
             while (!DCB->eof() && ocid == custid && custid < pub) {
                 //for (k=0; k < numitem; k++){
 
@@ -233,18 +234,20 @@ void do_invert_db(CalcDb *DCB, int pblk, ArrayT **extary, int numfreq, int *freq
         }
 
         for (i = 0; i < numfreq; i++) {
-            //std::cout << "FLUSH " << i << " " << extary[i]->lastPos << " " <<
+            //logger << "FLUSH " << i << " " << extary[i]->lastPos << " " <<
             //   extary[i]->theSize << std::endl;
             extary[i]->flushbuf(fd, use_seq, p);
         }
         close(fd);
     }
-    std::cout << "WROTE INVERT " << std::endl;
+    logger << "WROTE INVERT " << std::endl;
 }
 
 void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int MINSUPPORT, bool twoseq,
            int DBASE_MAXITEM, int DBASE_NUM_TRANS, long AMEM, int num_partitions, bool do_invert, bool use_newformat,
            bool use_diff, bool no_minus_off, bool do_l2, bool use_seq) {
+
+    std::ostringstream& logger = *_logger;
     int i, j, l;
     int idx;
     int custid, tid, numitem, fcnt;
@@ -268,29 +271,29 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
     DCB->get_next_trans(buf, numitem, tid, custid);
     int mincustid = custid;
     while (!DCB->eof()) {
-        //std::cout << custid << " " << tid << " " << numitem;
+        //logger << custid << " " << tid << " " << numitem;
         for (j = 0; j < numitem; j++) {
-            //std::cout << " " << buf[j] << std::flush;
+            //logger << " " << buf[j] << std::flush;
             itlen[buf[j]]++;
             if (use_seq && ocnt[buf[j]] != custid) {
                 itcnt[buf[j]]++;
                 ocnt[buf[j]] = custid;
             }
-            //if (buf[j] == 17) std::cout << " " << tid;
+            //if (buf[j] == 17) logger << " " << tid;
         }
-        //std::cout << std::endl;
+        //logger << std::endl;
         DCB->get_next_trans(buf, numitem, tid, custid);
     }
-    //std::cout << std::endl;
+    //logger << std::endl;
     int maxcustid = custid;
-    std::cout << "MINMAX " << mincustid << " " << maxcustid << std::endl;
+    logger << "MINMAX " << mincustid << " " << maxcustid << std::endl;
 
     int *freqidx = new int[DBASE_MAXITEM];
     int numfreq = 0;
     for (i = 0; i < DBASE_MAXITEM; i++) {
         if (use_seq) {
             if (itcnt[i] >= MINSUPPORT) {
-                std::cout << i << " SUPP " << itcnt[i] << std::endl;
+                logger << i << " SUPP " << itcnt[i] << std::endl;
                 freqidx[i] = numfreq;
                 numfreq++;
             } else freqidx[i] = -1;
@@ -302,7 +305,7 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
                 sumdiff += (DBASE_NUM_TRANS - itlen[i]);
             } else freqidx[i] = -1;
         }
-        //if (i == 17) std::cout << " 17 SUP " << itlen[17] << std::endl;
+        //if (i == 17) logger << " 17 SUP " << itlen[17] << std::endl;
     }
     int *backidx = new int[numfreq];
     numfreq = 0;
@@ -316,13 +319,13 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
         }
     }
 
-    std::cout << "numfreq " << numfreq << " :  " << " SUMSUP SUMDIFF = " << sumsup << " " << sumdiff << std::endl;
+    logger << "numfreq " << numfreq << " :  " << " SUMSUP SUMDIFF = " << sumsup << " " << sumdiff << std::endl;
 
     if (numfreq == 0) return;
 
     int extarysz = AMEM / numfreq;
     extarysz /= sizeof(int);
-    std::cout << "EXTRARYSZ " << extarysz << std::endl;
+    logger << "EXTRARYSZ " << extarysz << std::endl;
     if (extarysz < 2) extarysz = 2;
     ArrayT **extary = new ArrayT *[numfreq];
     for (i = 0; i < numfreq; i++) {
@@ -360,8 +363,8 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
                     DCB->get_next_trans(buf, numitem, tid, custid);
                 }
             } else sprintf(tmpnam, "%s", idxfn);
-            //std::cout << "100 VAL " << itcnt[100] << std::endl;
-            std::cout << "OPENED " << tmpnam << std::endl;
+            //logger << "100 VAL " << itcnt[100] << std::endl;
+            logger << "OPENED " << tmpnam << std::endl;
             ofd.open(tmpnam);
             if (!ofd) {
                 throw std::runtime_error("Can't open out file");
@@ -370,7 +373,7 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
             int file_offset = 0;
             int null = -1;
             for (i = 0; i < DBASE_MAXITEM; i++) {
-                //if (i == 17) std::cout << "LIDX " << i << " " << itlen[i] << std::endl;
+                //if (i == 17) logger << "LIDX " << i << " " << itlen[i] << std::endl;
                 if (freqidx[i] != -1) {
                     ofd.write((char *) &file_offset, ITSZ);
                     extary[freqidx[i]]->set_offset(file_offset, j);
@@ -384,9 +387,9 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
                 } else if (no_minus_off) {
                     ofd.write((char *) &file_offset, ITSZ);
                 } else ofd.write((char *) &null, ITSZ);
-                //std::cout << "OFF " << i <<" " << file_offset << std::endl;
+                //logger << "OFF " << i <<" " << file_offset << std::endl;
             }
-            std::cout << "OFF " << i << " " << file_offset << std::endl;
+            logger << "OFF " << i << " " << file_offset << std::endl;
             ofd.write((char *) &file_offset, ITSZ);
             ofd.close();
         }
@@ -396,7 +399,7 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
     delete[] itlen;
     delete[] itcnt;
 
-    std::cout << "Wrote Offt " << std::endl;
+    logger << "Wrote Offt " << std::endl;
 
     int *fidx = new int[numfreq];
     if (fidx == NULL) {
@@ -498,7 +501,7 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
             }
         }
         delete[] ocust;
-        std::cout << "2-IT " << " " << std::endl;
+        logger << "2-IT " << " " << std::endl;
 
         //write 2-itemsets counts to file
         int l2cnt = 0;
@@ -511,7 +514,7 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
                         numfreq, offsets, seq2, 1, MINSUPPORT, twoseq);
 
             ofd.close();
-            std::cout << "SEQ2 cnt " << l2cnt << std::endl;
+            logger << "SEQ2 cnt " << l2cnt << std::endl;
         }
         int seqs = l2cnt;
 
@@ -523,7 +526,7 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
         sort_get_l2(l2cnt, isetfd, ofd, backidx, freqidx,
                     numfreq, offsets, itcnt2, 0, MINSUPPORT, twoseq);
         ofd.close();
-        std::cout << "SORT " << l2cnt << "  " << std::endl;
+        logger << "SORT " << l2cnt << "  " << std::endl;
 
         if (use_seq) unlink("tmpseq");
         unlink("tmpiset");
@@ -548,7 +551,7 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
  *
  * @return
  */
-std::string _exttpose(const std::string& dbname, int num_partitions, double min_support, bool twoseq, bool use_diff, bool do_l2,
+std::vector<std::string> _exttpose(const std::string& dbname, int num_partitions, double min_support, bool twoseq, bool use_diff, bool do_l2,
               bool do_invert, bool use_newformat, int maxmem, bool no_minus_off) {
     char input[300];       //input file name
     char output[300];      //output file name
@@ -564,6 +567,7 @@ std::string _exttpose(const std::string& dbname, int num_partitions, double min_
     float DBASE_AVG_CUST_SZ = 0; //avg cust size for sequences
     int DBASE_TOT_TRANS; //tot trans for sequences
 
+    std::ostringstream& logger = *_logger;
 
     sprintf(input, "%s.data", dbname.c_str());
     sprintf(inconfn, "%s.conf", dbname.c_str());
@@ -572,22 +576,22 @@ std::string _exttpose(const std::string& dbname, int num_partitions, double min_
     sprintf(it2fn, "%s.2it", dbname.c_str());
     sprintf(seqfn, "%s.2seq", dbname.c_str());
 
-    std::cout << "input = " << input << std::endl;
-    std::cout << "inconfn = " << inconfn << std::endl;
-    std::cout << "output = " << output << std::endl;
-    std::cout << "idxfn = " << idxfn << std::endl;
-    std::cout << "it2fn = " << it2fn << std::endl;
-    std::cout << "seqfn = " << seqfn << std::endl;
+    logger << "input = " << input << std::endl;
+    logger << "inconfn = " << inconfn << std::endl;
+    logger << "output = " << output << std::endl;
+    logger << "idxfn = " << idxfn << std::endl;
+    logger << "it2fn = " << it2fn << std::endl;
+    logger << "seqfn = " << seqfn << std::endl;
 
-    std::cout << "num_partitions = " << num_partitions << std::endl;
-    std::cout << "min_support = " << min_support << std::endl;
-    std::cout << "twoseq = " << twoseq << std::endl;
-    std::cout << "use_diff = " << use_diff << std::endl;
-    std::cout << "do_l2 = " << do_l2 << std::endl;
-    std::cout << "do_invert = " << do_invert << std::endl;
-    std::cout << "use_newformat = " << use_newformat << std::endl;
-    std::cout << "maxmem = " << maxmem << std::endl;
-    std::cout << "no_minus_off = " << no_minus_off << std::endl;
+    logger << "num_partitions = " << num_partitions << std::endl;
+    logger << "min_support = " << min_support << std::endl;
+    logger << "twoseq = " << twoseq << std::endl;
+    logger << "use_diff = " << use_diff << std::endl;
+    logger << "do_l2 = " << do_l2 << std::endl;
+    logger << "do_invert = " << do_invert << std::endl;
+    logger << "use_newformat = " << use_newformat << std::endl;
+    logger << "maxmem = " << maxmem << std::endl;
+    logger << "no_minus_off = " << no_minus_off << std::endl;
 
     if (twoseq) {
         use_seq = false;
@@ -610,7 +614,7 @@ std::string _exttpose(const std::string& dbname, int num_partitions, double min_
         read(c, (char *) &DBASE_MAXITEM, ITSZ);
         read(c, (char *) &DBASE_AVG_TRANS_SZ, sizeof(float));
     }
-    std::cout << "CONF " << DBASE_NUM_TRANS << " " << DBASE_MAXITEM << " " <<
+    logger << "CONF " << DBASE_NUM_TRANS << " " << DBASE_MAXITEM << " " <<
          DBASE_AVG_TRANS_SZ << " " << DBASE_AVG_CUST_SZ << std::endl;
 
     close(c);
@@ -618,19 +622,22 @@ std::string _exttpose(const std::string& dbname, int num_partitions, double min_
     if (use_diff) {
         use_seq = 0;
         num_partitions = 1;
-        std::cout << "SEQ TURNED OFF and PARTITIONS = 1\n";
+        logger << "SEQ TURNED OFF and PARTITIONS = 1\n";
     }
     int MINSUPPORT = (int) (min_support * DBASE_NUM_TRANS + 0.5);
 
     //ensure that support is at least 2
     if (!twoseq && MINSUPPORT < 1) MINSUPPORT = 1;
-    std::cout << "MINSUPPORT " << MINSUPPORT << " " << DBASE_NUM_TRANS << std::endl;
+    logger << "MINSUPPORT " << MINSUPPORT << " " << DBASE_NUM_TRANS << std::endl;
 
     tpose(input, idxfn, it2fn, seqfn, output, MINSUPPORT, twoseq, DBASE_MAXITEM, DBASE_NUM_TRANS, AMEM, num_partitions,
           do_invert, use_newformat, use_diff, no_minus_off, do_l2, use_seq);
 
-    std::ostringstream os;
-    os << output << '\t' << idxfn << '\t' << it2fn << '\t' << seqfn;
+    std::vector<std::string> retval;
+    retval.push_back(output);
+    retval.push_back(idxfn);
+    retval.push_back(it2fn);
+    retval.push_back(seqfn);
 
-    return os.str();
+    return retval;
 }

@@ -35,7 +35,7 @@ void convert_bin(const std::string& ifname, const std::string& ofname) {
 
     while (fin.getline(inBuf, lineSize)) {
         inSize = fin.gcount();
-        //std::cout << "IN SIZE " << inSize << std::endl;
+        //logger << "IN SIZE " << inSize << std::endl;
         convbin(inBuf, inSize, fout);
     }
 }

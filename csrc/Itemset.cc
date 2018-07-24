@@ -1,10 +1,11 @@
 #include <cerrno>
 #include "Itemset.h"
+#include "utils.h"
 
 extern char print_tidlist;
 
 Itemset::Itemset(int it_sz, int ival_sz, int nclass) {
-    //std::cout << "ITALLOC " << MEMUSED;
+    //logger << "ITALLOC " << MEMUSED;
     theItemset = new Array(it_sz);
     if (theItemset == NULL) {
         throw std::runtime_error("memory:: Itemset");
@@ -21,17 +22,17 @@ Itemset::Itemset(int it_sz, int ival_sz, int nclass) {
     for (int i = 0; i < nclass; i++) clsSup[i] = 0;
 
     MEMUSED += sizeof(Itemset) + nclass * sizeof(int);
-    //std::cout << " -- " << MEMUSED << std::endl;
+    //logger << " -- " << MEMUSED << std::endl;
 }
 
 Itemset::~Itemset() {
-    //std::cout << "ITDEL " << MEMUSED;
+    //logger << "ITDEL " << MEMUSED;
     if (theItemset) delete theItemset;
     if (theIval) delete theIval;
     theItemset = NULL;
     theSupport = 0;
     MEMUSED -= sizeof(Itemset);
-    //std::cout << " -- " << MEMUSED << std::endl;
+    //logger << " -- " << MEMUSED << std::endl;
 }
 
 int Itemset::compare(Itemset &ar2) {
@@ -123,6 +124,7 @@ void Itemset::print_seq(int itempl, std::ostream& out) {
 }
 
 void Itemset::print_idlist() {
+    std::ostringstream& logger = *_logger;
     int i, cid, cnt;
 
     if (theIval && theIval->size() > 0) {
@@ -133,12 +135,12 @@ void Itemset::print_idlist() {
                 cnt++;
                 i += 2;
             } else {
-                std::cout << cid << " " << cnt << " ";
+                logger << cid << " " << cnt << " ";
                 cid = (*theIval)[i];
                 cnt = 0;
             }
         }
-        std::cout << cid << " " << cnt;
+        logger << cid << " " << cnt;
     }
 }
 

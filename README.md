@@ -37,8 +37,8 @@ followed by the element, space separated
 
 Let's call this file `data.txt`. You will call cspade as following:
 ```python
-from cspade import cpp_cspade
-seq = cpp_cspade('test.ascii.data')
+from pycspade import cspade
+seq, log = cspade('test.ascii.data')
 ```
 
 The result `seq` is a string, that have multiple rows and looks like this:
@@ -68,5 +68,5 @@ Read the original paper and the C++ implementation for more details
 - Make change
 - Pull request
 
-# How to recompile?
-- `rm cspade.cpp; python setup.py install`
+# How to recompile to use in IDE?
+- `rm cspade.cpp; python setup.py build_ext --inplace`

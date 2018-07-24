@@ -9,7 +9,7 @@ ItBufMgr *IBM;
 
 void ItBufMgr::get_ext_item(int it) {
     int supsz = partition_get_idxsup(it);
-    //std::cout << "GETEXT " << it << " " << supsz << std::endl;
+    //logger << "GETEXT " << it << " " << supsz << std::endl;
     int *newit = (int *) malloc(supsz * sizeof(int));
     partition_read_item(newit, it);
     _items[F1::fidx[it]]->set_support(supsz);

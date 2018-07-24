@@ -23,7 +23,7 @@ HashTable::HashTable(int size) {
         }
         i += 2;
     }
-    //std::cout << "SIZE : "<< theSize << " " << size << std::endl;
+    //logger << "SIZE : "<< theSize << " " << size << std::endl;
     theCells = new Itemset *[theSize];
     if (theCells == NULL) {
         throw std::runtime_error("MEMORY EXCEEDED");
@@ -88,14 +88,14 @@ int HashTable::find(Array *item, int len) {
 
 int HashTable::find(Itemset *item, unsigned int bvec, int len) {
     unsigned int hval = hashval(item, bvec);
-    //std::cout << "LOOKUP: " << *item;
-    //std::cout << "BVEC : " << bvec << " " << hval << std::endl;
+    //logger << "LOOKUP: " << *item;
+    //logger << "BVEC : " << bvec << " " << hval << std::endl;
     int pos;
     int i;
     for (i = 0; i < theSize; i++) {
         pos = hash(hval, i);
         if (theCells[pos] == NULL) break;
-        //std::cout << "CELL : " << pos << "=" << *theCells[pos];
+        //logger << "CELL : " << pos << "=" << *theCells[pos];
         if (item->compare(*theCells[pos], len, bvec) == 0) {
             return pos;
         }
