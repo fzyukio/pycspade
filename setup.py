@@ -24,6 +24,7 @@ sourcefiles += other_files
 ext_modules = [
     Extension('cspade',
               sourcefiles,
+              include_dirs=['csrc/'],
               language='c++',
               extra_compile_args=[
                   '-std=c++11',
@@ -41,7 +42,7 @@ setup(
     cmdclass={'build_ext': build_ext},
     ext_modules=ext_modules,
     packages=find_packages(),
-    version='0.0.2',
+    version='0.0.4',
     author=['Mohammed J. Zaki', 'Yukio Fukuzawa'],
     description='C-SPADE Python Implementation',
     long_description=open('README.md').read(),
