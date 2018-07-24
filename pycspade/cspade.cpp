@@ -582,10 +582,10 @@ static CYTHON_INLINE float __PYX_NAN() {
 #include "stdexcept"
 #include "typeinfo"
 #include <string>
-#include "csrc/sequence.cc"
-#include "csrc/makebin.cc"
-#include "csrc/getconf.cc"
-#include "csrc/exttpose.cc"
+#include "../csrc/sequence.cc"
+#include "../csrc/makebin.cc"
+#include "../csrc/getconf.cc"
+#include "../csrc/exttpose.cc"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -789,7 +789,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "cspade.pyx",
+  "pycspade/cspade.pyx",
   "stringsource",
 };
 
@@ -1116,7 +1116,6 @@ static const char __pyx_k_tmp_files[] = "tmp_files";
 static const char __pyx_k_use_class[] = "use_class";
 static const char __pyx_k_avaimem_mb[] = "avaimem_mb";
 static const char __pyx_k_cpp_cspade[] = "cpp_cspade";
-static const char __pyx_k_cspade_pyx[] = "cspade.pyx";
 static const char __pyx_k_outputfreq[] = "outputfreq";
 static const char __pyx_k_tposefiles[] = "tposefiles";
 static const char __pyx_k_use_window[] = "use_window";
@@ -1131,6 +1130,7 @@ static const char __pyx_k_num_partitions[] = "num_partitions";
 static const char __pyx_k_min_support_all[] = "min_support_all";
 static const char __pyx_k_min_support_one[] = "min_support_one";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
+static const char __pyx_k_pycspade_cspade_pyx[] = "pycspade/cspade.pyx";
 static PyObject *__pyx_kp_s__3;
 static PyObject *__pyx_n_s_avaimem_mb;
 static PyObject *__pyx_n_s_binfile;
@@ -1138,7 +1138,6 @@ static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_n_s_conffile;
 static PyObject *__pyx_n_s_cpp_cspade;
 static PyObject *__pyx_n_s_cspade;
-static PyObject *__pyx_kp_s_cspade_pyx;
 static PyObject *__pyx_n_s_dbname;
 static PyObject *__pyx_n_s_decode;
 static PyObject *__pyx_n_s_do_invert;
@@ -1165,6 +1164,7 @@ static PyObject *__pyx_n_s_os;
 static PyObject *__pyx_n_s_outputfreq;
 static PyObject *__pyx_n_s_path;
 static PyObject *__pyx_n_s_pruning_type;
+static PyObject *__pyx_kp_s_pycspade_cspade_pyx;
 static PyObject *__pyx_n_s_recursive;
 static PyObject *__pyx_n_s_remove;
 static PyObject *__pyx_n_s_seq;
@@ -2555,7 +2555,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_conffile, __pyx_k_conffile, sizeof(__pyx_k_conffile), 0, 0, 1, 1},
   {&__pyx_n_s_cpp_cspade, __pyx_k_cpp_cspade, sizeof(__pyx_k_cpp_cspade), 0, 0, 1, 1},
   {&__pyx_n_s_cspade, __pyx_k_cspade, sizeof(__pyx_k_cspade), 0, 0, 1, 1},
-  {&__pyx_kp_s_cspade_pyx, __pyx_k_cspade_pyx, sizeof(__pyx_k_cspade_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_dbname, __pyx_k_dbname, sizeof(__pyx_k_dbname), 0, 0, 1, 1},
   {&__pyx_n_s_decode, __pyx_k_decode, sizeof(__pyx_k_decode), 0, 0, 1, 1},
   {&__pyx_n_s_do_invert, __pyx_k_do_invert, sizeof(__pyx_k_do_invert), 0, 0, 1, 1},
@@ -2582,6 +2581,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_outputfreq, __pyx_k_outputfreq, sizeof(__pyx_k_outputfreq), 0, 0, 1, 1},
   {&__pyx_n_s_path, __pyx_k_path, sizeof(__pyx_k_path), 0, 0, 1, 1},
   {&__pyx_n_s_pruning_type, __pyx_k_pruning_type, sizeof(__pyx_k_pruning_type), 0, 0, 1, 1},
+  {&__pyx_kp_s_pycspade_cspade_pyx, __pyx_k_pycspade_cspade_pyx, sizeof(__pyx_k_pycspade_cspade_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_recursive, __pyx_k_recursive, sizeof(__pyx_k_recursive), 0, 0, 1, 1},
   {&__pyx_n_s_remove, __pyx_k_remove, sizeof(__pyx_k_remove), 0, 0, 1, 1},
   {&__pyx_n_s_seq, __pyx_k_seq, sizeof(__pyx_k_seq), 0, 0, 1, 1},
@@ -2646,7 +2646,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_tuple__5 = PyTuple_Pack(31, __pyx_n_s_filename, __pyx_n_s_num_partitions, __pyx_n_s_min_support_one, __pyx_n_s_min_support_all, __pyx_n_s_twoseq, __pyx_n_s_use_diff, __pyx_n_s_do_l2, __pyx_n_s_do_invert, __pyx_n_s_use_newformat, __pyx_n_s_maxmem, __pyx_n_s_no_minus_off, __pyx_n_s_use_ascending, __pyx_n_s_use_class, __pyx_n_s_ext_l2_pass, __pyx_n_s_use_hash, __pyx_n_s_min_gap, __pyx_n_s_recursive, __pyx_n_s_pruning_type, __pyx_n_s_max_gap, __pyx_n_s_use_window, __pyx_n_s_max_seq_len, __pyx_n_s_max_iset_len, __pyx_n_s_avaimem_mb, __pyx_n_s_outputfreq, __pyx_n_s_dbname, __pyx_n_s_binfile, __pyx_n_s_conffile, __pyx_n_s_tposefiles, __pyx_n_s_seq, __pyx_n_s_tmp_files, __pyx_n_s_tmp_file); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 27, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
-  __pyx_codeobj__6 = (PyObject*)__Pyx_PyCode_New(22, 0, 31, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__5, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_cspade_pyx, __pyx_n_s_cpp_cspade, 27, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__6)) __PYX_ERR(0, 27, __pyx_L1_error)
+  __pyx_codeobj__6 = (PyObject*)__Pyx_PyCode_New(22, 0, 31, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__5, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_pycspade_cspade_pyx, __pyx_n_s_cpp_cspade, 27, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__6)) __PYX_ERR(0, 27, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;

@@ -4,7 +4,7 @@ import uuid
 from libcpp cimport bool
 from libcpp.string cimport string
 
-cdef extern from "csrc/sequence.cc":
+cdef extern from "../csrc/sequence.cc":
     void say_hello()
 
     string mine(char *dbname, double min_support_one, int min_support_all, int use_ascending, bool use_class,
@@ -13,13 +13,13 @@ cdef extern from "csrc/sequence.cc":
                 )  except +
 
 
-cdef extern from "csrc/makebin.cc":
+cdef extern from "../csrc/makebin.cc":
     void convert_bin(string ifname, string ofname)  except +
 
-cdef extern from "csrc/getconf.cc":
+cdef extern from "../csrc/getconf.cc":
     string create_conf(string datafile_name, bool assoc) except +
 
-cdef extern from "csrc/exttpose.cc":
+cdef extern from "../csrc/exttpose.cc":
     string _exttpose(string dbname, int num_partitions, double min_support, bool twoseq, bool use_diff, bool do_l2,
                   bool do_invert, bool use_newformat, int maxmem, bool no_minus_off) except +
 

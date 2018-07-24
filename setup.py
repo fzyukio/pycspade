@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages, Extension
+from setuptools import setup, Extension
 from Cython.Distutils import build_ext
 from codecs import open
 
@@ -10,9 +10,9 @@ else:
     use_cython = True
 
 if use_cython:
-    sourcefiles = ['cspade.pyx']
+    sourcefiles = ['pycspade/cspade.pyx']
 else:
-    sourcefiles = ['cspade.cpp']
+    sourcefiles = ['pycspade/cspade.cpp']
 
 other_files = ['csrc/{}'.format(x) for x in [
     'Itemset.cc', 'Array.cc', 'ArrayT.cc', 'Eqclass.cc', 'Lists.cc', 'extl2.cc', 'partition.cc', 'maxgap.cc',
@@ -22,7 +22,7 @@ other_files = ['csrc/{}'.format(x) for x in [
 sourcefiles += other_files
 
 ext_modules = [
-    Extension('cspade',
+    Extension('pycspade.cspade',
               sourcefiles,
               include_dirs=['csrc/'],
               language='c++',
@@ -41,8 +41,9 @@ setup(
     name='pycspade',
     cmdclass={'build_ext': build_ext},
     ext_modules=ext_modules,
-    packages=find_packages(),
-    version='0.0.4',
+    license='MIT',
+    packages=['pycspade'],
+    version='0.0.6',
     author=['Mohammed J. Zaki', 'Yukio Fukuzawa'],
     description='C-SPADE Python Implementation',
     long_description=open('README.md').read(),
