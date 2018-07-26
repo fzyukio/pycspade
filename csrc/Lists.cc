@@ -9,14 +9,14 @@ template<class Items>
 ListNodes<Items>::ListNodes(Items item, ListNodes<Items> *next) {
     theItem = item;
     theNext = next;
-    MEMUSED += sizeof(ListNodes<Items>);
+    global::MEMUSED += sizeof(ListNodes<Items>);
 }
 
 template<class Items>
 ListNodes<Items>::~ListNodes() {
-    theNext = NULL;
-    theItem = NULL;
-    MEMUSED -= sizeof(ListNodes<Items>);
+    theNext = nullptr;
+    theItem = nullptr;
+    global::MEMUSED -= sizeof(ListNodes<Items>);
 }
 
 template<class Items>
@@ -24,7 +24,7 @@ Lists<Items>::Lists() {
     theHead = 0;
     theLast = 0;
     theSize = 0;
-    MEMUSED += sizeof(Lists<Items>);
+    global::MEMUSED += sizeof(Lists<Items>);
 }
 
 //only listnodes are deleted, if node->item() is a pointer to some object
@@ -38,10 +38,10 @@ Lists<Items>::~Lists() {
         node = node->next();
         delete tmp;
     }
-    theHead = NULL;
-    theLast = NULL;
+    theHead = nullptr;
+    theLast = nullptr;
     theSize = 0;
-    MEMUSED -= sizeof(Lists<Items>);
+    global::MEMUSED -= sizeof(Lists<Items>);
 }
 
 //listnodes are deleted, if node->item() is a pointer to some object
@@ -56,8 +56,8 @@ void Lists<Items>::clear() {
         if (tmp->item()) delete tmp->item();
         delete tmp;
     }
-    theHead = NULL;
-    theLast = NULL;
+    theHead = nullptr;
+    theLast = nullptr;
     theSize = 0;
 }
 
@@ -68,8 +68,8 @@ void Lists<Items>::append(Items item) {
 
     theSize++;
     node = new ListNodes<Items>(item, 0);
-    if (node == NULL) {
-        throw std::runtime_error("MEMORY EXCEEDED");
+    if (node == nullptr) {
+        throw runtime_error("MEMORY EXCEEDED");
     }
 
     if (theHead == 0) {
@@ -88,9 +88,6 @@ void Lists<Items>::prepend(Items item) {
 
     theSize++;
     node = new ListNodes<Items>(item, 0);
-    if (node == NULL) {
-        throw std::runtime_error("MEMORY EXCEEDED");
-    }
 
     if (theHead == 0) {
         theHead = node;
@@ -103,7 +100,7 @@ void Lists<Items>::prepend(Items item) {
 
 template<class Items>
 void Lists<Items>::remove(ListNodes<Items> *prev, ListNodes<Items> *val) {
-    if (prev == NULL) theHead = val->next();
+    if (prev == nullptr) theHead = val->next();
     else prev->set_next(val->next());
     if (theLast == val) theLast = prev;
     theSize--;
@@ -113,12 +110,9 @@ template<class Items>
 void Lists<Items>::sortedDescend(Items item, CMP_FUNC cmpare) {
     ListNodes<Items> *node;
     ListNodes<Items> *temp = theHead;
+
     theSize++;
     node = new ListNodes<Items>(item, 0);
-    if (node == NULL) {
-        throw std::runtime_error("MEMORY EXCEEDED");
-    }
-
     if (theHead == 0) {
         theHead = node;
         theLast = node;
@@ -147,9 +141,6 @@ void Lists<Items>::sortedAscend(Items item, CMP_FUNC cmpare) {
 
     theSize++;
     node = new ListNodes<Items>(item, 0);
-    if (node == NULL) {
-        throw std::runtime_error("MEMORY EXCEEDED");
-    }
 
     if (theHead == 0) {
         theHead = node;
@@ -177,7 +168,7 @@ Items Lists<Items>::find(Items item, CMP_FUNC cmpare) {
     for (; temp; temp = temp->next())
         if (cmpare((void *) item, (void *) temp->item()) == 0)
             return temp->item();
-    return NULL;
+    return nullptr;
 }
 
 template<class Items>
@@ -211,11 +202,7 @@ template<class Items>
 void Lists<Items>::insert(ListNodes<Items> *&prev, Items item) {
     theSize++;
     ListNodes<Items> *node = new ListNodes<Items>(item, 0);
-    if (node == NULL) {
-        throw std::runtime_error("MEMORY EXCEEDED");
-    }
-
-    if (prev == NULL) {
+    if (prev == nullptr) {
         theHead = node;
         theLast = node;
     } else {

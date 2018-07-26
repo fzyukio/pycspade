@@ -7,26 +7,23 @@ ArrayT::ArrayT (int sz, int npart){
    theSize = 0;
    lastPos = 0;
    theFlg = 0;
-   //theIncr = incr;
-   theArrayT = NULL;
+   theArray = nullptr;
    offset = new long[npart];
    for (int i=0; i < npart; i++) offset[i]=0;
    if (sz > 0){
-      theArrayT =  (int *) malloc (totSize*sizeof(int));
-      //theArrayT = new int [totSize];
-      if (theArrayT == NULL){
-         throw std::runtime_error("memory:: ArrayT");
+      theArray =  (int *) malloc (totSize*sizeof(int));
+      if (theArray == nullptr){
+         throw runtime_error("memory:: ArrayT");
       }
    }
 }
 
 ArrayT::~ArrayT(){
-   if (theArrayT) {
-      free(theArrayT);
-      //delete [] theArrayT;
+   if (theArray) {
+      free(theArray);
    }
    delete [] offset;
-   theArrayT = NULL;
+   theArray = nullptr;
 }
 
 

@@ -5,6 +5,6 @@
 
 //using namespace std;
 
-extern std::string create_conf(const std::string& datafile_name, bool assoc);
+extern string create_conf(bool assoc);
 
 #endif //__GETCONF_H

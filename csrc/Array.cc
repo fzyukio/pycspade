@@ -5,31 +5,27 @@
 Array::Array(int sz) {
     totSize = sz;
     theSize = 0;
-    //theIncr = incr;
-    theArray = NULL;
+    theArray = nullptr;
     if (sz > 0) {
         theArray = (int *) malloc(totSize * sizeof(int));
-        //theArray = new int [totSize];
-        if (theArray == NULL) {
-            throw std::runtime_error("memory:: Array");
+        if (theArray == nullptr) {
+            throw runtime_error("memory:: Array");
         }
-        MEMUSED += totSize * sizeof(int);
+        global::MEMUSED += totSize * sizeof(int);
     }
-    MEMUSED += sizeof(Array);
+    global::MEMUSED += sizeof(Array);
 }
 
 Array::~Array() {
     if (theArray) {
         free(theArray);
-        //delete [] theArray;
-        MEMUSED -= totSize * sizeof(int);
-        //logger << "CAME HERE " << MEMUSED <<std::endl;
+        global::MEMUSED -= totSize * sizeof(int);
     }
-    theArray = NULL;
-    MEMUSED -= sizeof(Array);
+    theArray = nullptr;
+    global::MEMUSED -= sizeof(Array);
 }
 
-std::ostream &operator<<(std::ostream &outputStream, Array &arr) {
+ostream &operator<<(ostream &outputStream, Array &arr) {
     for (int i = 0; i < arr.theSize; i++)
         outputStream << arr[i] << " ";
     return outputStream;

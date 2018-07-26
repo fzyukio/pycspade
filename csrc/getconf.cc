@@ -12,19 +12,16 @@
 
 //using namespace std;
 
-std::string create_conf(const std::string& datafile_name, bool assoc) {
-    char input[300];
-    char confn[300];
-    sprintf(input, "%s.data", datafile_name.c_str());
-    sprintf(confn, "%s.conf", datafile_name.c_str());
+string create_conf(bool assoc) {
+    using sequence::cspade_args;
 
     int DBASE_NUM_TRANS = 0;
     int DBASE_MAXITEM = 0;
     int DBASE_NUM_CUST = 0;
     int DBASE_MINTRANS = 0;
     int DBASE_MAXTRANS = 0;
-    float DBASE_AVG_TRANS_SZ = 0;
-    float DBASE_AVG_CUST_SZ = 0;
+    double DBASE_AVG_TRANS_SZ = 0;
+    double DBASE_AVG_CUST_SZ = 0;
 
     int i;
 
@@ -37,7 +34,7 @@ std::string create_conf(const std::string& datafile_name, bool assoc) {
     int tsizesq = 0;
     int maxnitem = 0;
 
-    CalcDb *DCB = new CalcDb(input);
+    auto *DCB = new CalcDb(cspade_args.binf);
     DCB->get_first_blk();
     DCB->get_next_trans(buf, nitem, tid, custid);
     DBASE_MINTRANS = custid;
@@ -72,20 +69,21 @@ std::string create_conf(const std::string& datafile_name, bool assoc) {
 
     //write config info to new file
     int conffd;
-    if ((conffd = open(confn, (O_WRONLY | O_CREAT), 0666)) < 0) {
-        throw std::runtime_error("Can't open out file");
+    if ((conffd = open(cspade_args.conf.c_str(), (O_WRONLY | O_CREAT), 0666)) < 0) {
+        string error_message = "can't open conf file: " + cspade_args.conf;
+        throw runtime_error(error_message);
     }
     if (assoc) {
         write(conffd, (char *) &DBASE_NUM_TRANS, ITSZ);
         write(conffd, (char *) &DBASE_MAXITEM, ITSZ);
-        write(conffd, (char *) &DBASE_AVG_TRANS_SZ, sizeof(float));
+        write(conffd, (char *) &DBASE_AVG_TRANS_SZ, sizeof(double));
         write(conffd, (char *) &DBASE_MINTRANS, ITSZ);
         write(conffd, (char *) &DBASE_MAXTRANS, ITSZ);
     } else {
         write(conffd, (char *) &DBASE_NUM_CUST, ITSZ);
         write(conffd, (char *) &DBASE_MAXITEM, ITSZ);
-        write(conffd, (char *) &DBASE_AVG_CUST_SZ, sizeof(float));
-        write(conffd, (char *) &DBASE_AVG_TRANS_SZ, sizeof(float));
+        write(conffd, (char *) &DBASE_AVG_CUST_SZ, sizeof(double));
+        write(conffd, (char *) &DBASE_AVG_TRANS_SZ, sizeof(double));
         write(conffd, (char *) &DBASE_NUM_TRANS, ITSZ);
         write(conffd, (char *) &DBASE_MINTRANS, ITSZ);
         write(conffd, (char *) &DBASE_MAXTRANS, ITSZ);
@@ -93,7 +91,7 @@ std::string create_conf(const std::string& datafile_name, bool assoc) {
 
     close(conffd);
     delete DCB;
-    return std::string(confn);
+    return string(cspade_args.conf);
 }
 
 

@@ -2,10 +2,9 @@
 #define __LISTS_H
 
 #include <iostream>
+#include "utils.h"
 
 typedef int (*CMP_FUNC)(void *, void *);
-
-extern long MEMUSED;
 
 template<class Items>
 class ListNodes {

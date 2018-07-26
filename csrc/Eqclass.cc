@@ -9,21 +9,18 @@ Eqclass::Eqclass(int iset_sz, int eqt) {
     Iset_size = iset_sz;
     Eqtype = eqt;
     theList = new Lists<Itemset *>;
-    if (theList == NULL) {
-        throw std::runtime_error("memory :: Eqclass");
+    if (theList == nullptr) {
+        throw runtime_error("memory :: Eqclass");
     }
     seqTemplate = seqTemplate2 = 0;
-    //seqTemplate = new int[Iset_size];
-    theList2 = NULL;
-    //seqTemplate2 = NULL;
+    theList2 = nullptr;
     if (Eqtype == EQCTYP1) {
         theList2 = new Lists<Itemset *>;
-        if (theList2 == NULL) {
-            throw std::runtime_error("memory :: Eqclass");
+        if (theList2 == nullptr) {
+            throw runtime_error("memory :: Eqclass");
         }
-        //seqTemplate2 = new int[Iset_size];
     }
-    MEMUSED += sizeof(Eqclass);
+    global::MEMUSED += sizeof(Eqclass);
 }
 
 Eqclass::~Eqclass() {
@@ -31,68 +28,19 @@ Eqclass::~Eqclass() {
         theList->clear();
         delete theList;
     }
-    theList = NULL;
-    //if (seqTemplate) delete [] seqTemplate;
+    theList = nullptr;
     if (theList2) {
         theList2->clear();
         delete theList2;
     }
-    theList2 = NULL;
-    //if (seqTemplate2) delete [] seqTemplate2;
-    MEMUSED -= sizeof(Eqclass);
-}
-
-void Eqclass::print_template1() {
-    std::ostringstream& logger = *_logger;
-
-    logger << "TEMPLATE1";
-    logger << " " << seqTemplate;
-    //for (i=0; i < Iset_size; i++) logger << " " << seqTemplate[i];
-    logger << std::endl;
-}
-
-void Eqclass::print_template2() {
-    std::ostringstream& logger = *_logger;
-    if (seqTemplate2) {
-        logger << "TEMPLATE2";
-        logger << " " << seqTemplate2;
-        //for (i=0; i < Iset_size; i++) logger << " " << seqTemplate2[i];
-        logger << std::endl;
-    }
-}
-
-void Eqclass::print_template() {
-    std::ostringstream& logger = *_logger;
-    logger << "TEMPLATE1";
-    logger << " " << seqTemplate;
-    //for (i=0; i < Iset_size; i++) logger << " " << seqTemplate[i];
-    //logger << std::endl;
-    //if (seqTemplate2){
-    logger << " TEMPLATE2";
-    logger << " " << seqTemplate2;
-    //for (i=0; i < Iset_size; i++) logger << " " << seqTemplate2[i];
-    logger << std::endl;
-    //}
-}
-
-void Eqclass::print_list(Lists<Itemset *> *ll) {
-    std::ostringstream& logger = *_logger;
-    ListNodes<Itemset *> *hd = ll->head();
-    for (; hd; hd = hd->next())
-        logger << *(hd->item());
-    logger << std::flush;
+    theList2 = nullptr;
+    global::MEMUSED -= sizeof(Eqclass);
 }
 
 Itemset *Eqclass::uniqsorted(Itemset *it, CMP_FUNC func) {
     Itemset *rval;
-    //ListNodes<Itemset *> * prev = NULL;
-    //if (!theList->find_ascend(prev, it, func))
-    //   theList->insert(prev, it);
     if (!(rval = theList->find(it, Itemset::Itemcompare))) {
         theList->sortedAscend(it, func);
-        //  return 0;
-        //}
-        //else return 1;
     }
     return rval;
 }
@@ -109,50 +57,46 @@ int Eqclass::subseq(Itemset *it) {
 
 
 EqGrNode::EqGrNode(int sz) {
-    //totElements = sz;
-    //numElements = 0;
     if (sz > 0) {
         theElements = new Array(sz);
         stheElements = new Array(sz);
-        _set_sup = new Array *[NUMCLASS];
-        _seq_sup = new Array *[NUMCLASS];
-        for (int i = 0; i < NUMCLASS; i++) {
+        _set_sup = new Array *[global::NUMCLASS];
+        _seq_sup = new Array *[global::NUMCLASS];
+        for (int i = 0; i < global::NUMCLASS; i++) {
             _set_sup[i] = new Array(sz);
             _seq_sup[i] = new Array(sz);
         }
     } else {
-        theElements = NULL;
-        stheElements = NULL;
-        _set_sup = NULL;
-        _seq_sup = NULL;
+        theElements = nullptr;
+        stheElements = nullptr;
+        _set_sup = nullptr;
+        _seq_sup = nullptr;
     }
 
-    //stheElements = new int[ssz];
-    //MEMUSED += sz*sizeof(int);
-    freqArray = NULL;
+    freqArray = nullptr;
     freqArraySz = 0;
     theFlg = 0;
-    MEMUSED += sizeof(EqGrNode);
+    global::MEMUSED += sizeof(EqGrNode);
 }
 
 EqGrNode::~EqGrNode() {
     if (theElements) delete theElements;
     if (stheElements) delete stheElements;
     if (_set_sup) {
-        for (int i = 0; i < NUMCLASS; i++)
+        for (int i = 0; i < global::NUMCLASS; i++)
             delete _set_sup[i];
     }
     if (_seq_sup) {
-        for (int i = 0; i < NUMCLASS; i++)
+        for (int i = 0; i < global::NUMCLASS; i++)
             delete _seq_sup[i];
     }
     if (freqArray) {
         for (int i = 0; i < freqArraySz; i++) delete freqArray[i];
         delete[] freqArray;
     }
-    theElements = NULL;
+    theElements = nullptr;
     theFlg = 0;
-    MEMUSED -= sizeof(EqGrNode);
+    global::MEMUSED -= sizeof(EqGrNode);
 }
 
 //assume that elements are sorted in descending order
@@ -162,8 +106,6 @@ int EqGrNode::bsearch(int min, int max, FreqIt **freqArray,
     if (max < min) return -1;
 
     int res = freqArray[mid]->compare(&fit, recursive);
-    //if (fit.seq[0] == 101 || fit.seq[0] == 201)
-    //   logger << "RES " << res << " " << mid << " *** " << *freqArray[mid];
     if (res == 0) return mid;
     else if (res < 0) return bsearch(min, mid - 1, freqArray, fit, recursive);
     else return bsearch(mid + 1, max, freqArray, fit, recursive);
@@ -186,26 +128,25 @@ int EqGrNode::find_freqarray(FreqIt &fit, int recursive) {
 }
 
 
-std::ostream &operator<<(std::ostream &outputStream, EqGrNode &EQ) {
-    std::ostringstream& logger = *_logger;
+ostream &operator<<(ostream &outputStream, EqGrNode &EQ) {
     int i;
     if (EQ.theElements) {
-        logger << "SET " << *EQ.theElements << std::endl;
-        for (i = 0; i < NUMCLASS; i++)
-            logger << "Sup" << i << " : " << *EQ._set_sup[i] << std::endl;
+        logger << "SET " << *EQ.theElements << endl;
+        for (i = 0; i < global::NUMCLASS; i++)
+            logger << "Sup" << i << " : " << *EQ._set_sup[i] << endl;
         logger << "Tot";
         for (i = 0; i < EQ.theElements->size(); i++)
             logger << " " << EQ.get_sup(i);
-        logger << std::endl;
+        logger << endl;
     }
     if (EQ.stheElements) {
-        logger << "SEQ " << *EQ.stheElements << std::endl;
-        for (i = 0; i < NUMCLASS; i++)
-            logger << "SSup" << i << " : " << *EQ._seq_sup[i] << std::endl;
+        logger << "SEQ " << *EQ.stheElements << endl;
+        for (i = 0; i < global::NUMCLASS; i++)
+            logger << "SSup" << i << " : " << *EQ._seq_sup[i] << endl;
         logger << "Tot";
         for (i = 0; i < EQ.stheElements->size(); i++)
             logger << " " << EQ.get_seqsup(i);
-        logger << std::endl;
+        logger << endl;
     }
 
     return outputStream;
@@ -264,8 +205,8 @@ int FreqIt::compare(FreqIt *fit, int recursive) {
 }
 
 //////F1
-Array **F1::itsup = NULL;
-int *F1::backidx = NULL;
-int *F1::fidx = NULL;
+Array **F1::itsup = nullptr;
+int *F1::backidx = nullptr;
+int *F1::fidx = nullptr;
 int F1::numfreq = 0;
  

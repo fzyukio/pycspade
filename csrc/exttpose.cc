@@ -1,21 +1,16 @@
 #include <cerrno>
-#include <iostream>
-#include <fstream>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/time.h>
 #include <cmath>
-#include <sstream>
-#include <vector>
 
+#include "utils.h"
 #include "calcdb.h"
 #include "ArrayT.h"
 #include "exttpose.h"
-#include "utils.h"
 
-
-void sort_get_l2(int &l2cnt, int fd, std::ofstream &ofd, int *backidx, int *freqidx,
-                 int numfreq, int *offsets, unsigned char *cntary, char use_seq, int MINSUPPORT, bool twoseq) {
+void sort_get_l2(int &l2cnt, int fd, ofstream &ofd, int *backidx, int *freqidx,
+                 int numfreq, int *offsets, unsigned char *cntary, char use_seq, int minsupport, bool twoseq) {
     //write 2-itemsets counts to file
 
     int i, j, k, fcnt;
@@ -26,21 +21,21 @@ void sort_get_l2(int &l2cnt, int fd, std::ofstream &ofd, int *backidx, int *freq
 
     sortflen = lseek(fd, 0, SEEK_CUR);
     if (sortflen < 0) {
-        throw std::runtime_error("SEEK SEQ");
+        throw runtime_error("SEEK SEQ");
     }
-    //logger << "SORT " << sortflen << std::endl;
+    //logger << "SORT " << sortflen << endl;
     if (sortflen > 0) {
 #ifdef DEC
-        sortary = (int *) mmap((char *)NULL, sortflen,
+        sortary = (int *) mmap((char *)nullptr, sortflen,
                                (PROT_READ|PROT_WRITE),
                                (MAP_FILE|MAP_VARIABLE|MAP_PRIVATE), fd, 0);
 #else
-        sortary = (int *) mmap((char *) NULL, sortflen,
+        sortary = (int *) mmap((char *) nullptr, sortflen,
                                (PROT_READ | PROT_WRITE),
                                MAP_PRIVATE, fd, 0);
 #endif
         if (sortary == (int *) -1) {
-            throw std::runtime_error("SEQFd MMAP ERROR");
+            throw runtime_error("SEQFd MMAP ERROR");
         }
 
         qsort(sortary, (sortflen / sizeof(int)) / 2, 2 * sizeof(int), cmp2it);
@@ -68,7 +63,7 @@ void sort_get_l2(int &l2cnt, int fd, std::ofstream &ofd, int *backidx, int *freq
                 fcnt += (int) cntary[lit + k];
             }
 
-            if (fcnt >= MINSUPPORT) {
+            if (fcnt >= minsupport) {
                 if (twoseq) {
                     ofd.write((char *) &fcnt, ITSZ);
                 } else {
@@ -78,7 +73,7 @@ void sort_get_l2(int &l2cnt, int fd, std::ofstream &ofd, int *backidx, int *freq
                     ofd.write((char *) itbuf, 3 * ITSZ);
                 }
                 //logger << backidx[j] << ((use_seq)?" -> ":" ")
-                //     << backidx[k] << " SUPP " << fcnt << std::endl;
+                //     << backidx[k] << " SUPP " << fcnt << endl;
                 l2cnt++;
             }
         }
@@ -138,9 +133,9 @@ void process_cust(int *fidx, int fcnt, int numfreq, int *backidx,
 }
 
 void do_invert_db(CalcDb *DCB, int pblk, ArrayT **extary, int numfreq, int *freqidx, int *backidx, int *fidx,
-                  int mincustid, int maxcustid, int num_partitions, char *output, bool use_diff, bool use_newformat,
-                  bool use_seq) {
-    std::ostringstream& logger = *_logger;
+                  int mincustid, int maxcustid, bool use_seq) {
+    using sequence::cspade_args;
+
     int numitem, tid, custid;
     int *buf;
     char tmpnam[300];
@@ -151,11 +146,14 @@ void do_invert_db(CalcDb *DCB, int pblk, ArrayT **extary, int numfreq, int *freq
     DCB->get_first_blk();
     DCB->get_next_trans(buf, numitem, tid, custid);
     int ocid;// = -1;
-    for (int p = 0; p < num_partitions; p++) {
-        if (num_partitions > 1) sprintf(tmpnam, "%s.P%d", output, p);
-        else sprintf(tmpnam, "%s", output);
+    for (int p = 0; p < cspade_args.num_partitions; p++) {
+        if (cspade_args.num_partitions > 1) sprintf(tmpnam, "%s.P%d", cspade_args.dataf.c_str(), p);
+        else sprintf(tmpnam, "%s", cspade_args.dataf.c_str());
+
+        // Creating tpose file
         if ((fd = open(tmpnam, (O_WRONLY | O_CREAT | O_TRUNC), 0666)) < 0) {
-            throw std::runtime_error("Can't open out file");
+            string error_message = "can't open tpose file: " + string(tmpnam);
+            throw runtime_error(error_message);
         }
 
         for (i = 0; i < numfreq; i++) {
@@ -165,27 +163,21 @@ void do_invert_db(CalcDb *DCB, int pblk, ArrayT **extary, int numfreq, int *freq
         int plb = p * pblk + mincustid;
         int pub = plb + pblk;
         if (pub >= maxcustid) pub = maxcustid + 1;
-        logger << "BOUNDS " << plb << " " << pub << std::endl;
+        logger << "BOUNDS " << plb << " " << pub << endl;
         int fcnt;
         for (; !DCB->eof() && custid < pub;) {
             fcnt = 0;
             ocid = custid;
-            //logger << "TID " << custid << " " << tid << " " << numitem << std::endl;
             while (!DCB->eof() && ocid == custid && custid < pub) {
-                //for (k=0; k < numitem; k++){
-
-                // }
-
-                if (use_diff) {
+                if (cspade_args.use_diff) {
                     //add this tid to all items not in the trans
                     k = 0;
                     for (j = 0; j < numitem; j++) {
                         if (freqidx[buf[j]] == -1) continue;
 
                         while (backidx[k] < buf[j]) {
-                            //if ((idx = freqidx[backidx[k]]) != -1){
                             idx = k;
-                            if (!use_newformat)
+                            if (!cspade_args.use_newformat)
                                 extary[idx]->add(fd, tid, use_seq, p);
                             else extary[idx]->add(fd, tid, use_seq, p, custid);
                             //}
@@ -194,9 +186,8 @@ void do_invert_db(CalcDb *DCB, int pblk, ArrayT **extary, int numfreq, int *freq
                         k++; //skip over buf[j]
                     }
                     for (; k < numfreq; k++) {
-                        //if ((idx = freqidx[backidx[k]]) != -1){
                         idx = k;
-                        if (!use_newformat)
+                        if (!cspade_args.use_newformat)
                             extary[idx]->add(fd, tid, use_seq, p);
                         else extary[idx]->add(fd, tid, use_seq, p, custid);
                         //}
@@ -206,7 +197,7 @@ void do_invert_db(CalcDb *DCB, int pblk, ArrayT **extary, int numfreq, int *freq
                     for (j = 0; j < numitem; j++) {
                         idx = freqidx[buf[j]];
                         if (idx != -1) {
-                            if (!use_newformat) {
+                            if (!cspade_args.use_newformat) {
                                 if (use_seq && extary[idx]->flg() == 0) {
                                     fidx[fcnt] = idx;
                                     fcnt++;
@@ -224,7 +215,7 @@ void do_invert_db(CalcDb *DCB, int pblk, ArrayT **extary, int numfreq, int *freq
 
                 DCB->get_next_trans(buf, numitem, tid, custid);
             }
-            if (!use_newformat && use_seq) {
+            if (!cspade_args.use_newformat && use_seq) {
                 for (k = 0; k < fcnt; k++) {
                     extary[fidx[k]]->setlastpos();
                     extary[fidx[k]]->setflg(0);
@@ -234,36 +225,31 @@ void do_invert_db(CalcDb *DCB, int pblk, ArrayT **extary, int numfreq, int *freq
         }
 
         for (i = 0; i < numfreq; i++) {
-            //logger << "FLUSH " << i << " " << extary[i]->lastPos << " " <<
-            //   extary[i]->theSize << std::endl;
             extary[i]->flushbuf(fd, use_seq, p);
         }
         close(fd);
     }
-    logger << "WROTE INVERT " << std::endl;
+    logger << "WROTE INVERT " << endl;
 }
 
-void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int MINSUPPORT, bool twoseq,
-           int DBASE_MAXITEM, int DBASE_NUM_TRANS, long AMEM, int num_partitions, bool do_invert, bool use_newformat,
-           bool use_diff, bool no_minus_off, bool do_l2, bool use_seq) {
+void tpose(bool use_seq) {
+    using sequence::cspade_args;
 
-    std::ostringstream& logger = *_logger;
     int i, j, l;
     int idx;
     int custid, tid, numitem, fcnt;
-    std::ofstream ofd;
+    ofstream ofd;
     double t1, t2;
     int sumsup = 0, sumdiff = 0;
 
-    CalcDb *DCB = new CalcDb(input);
+    auto *DCB = new CalcDb(cspade_args.binf);
 
-    int *itcnt = new int[DBASE_MAXITEM];
-    int *ocnt = new int[DBASE_MAXITEM];
-    int *itlen = new int[DBASE_MAXITEM];
-    bzero((char *) itcnt, ((DBASE_MAXITEM) * ITSZ));
-    //bzero((char *)ocnt, ((DBASE_MAXITEM)*ITSZ));
-    for (i = 0; i < DBASE_MAXITEM; i++) ocnt[i] = -1;
-    bzero((char *) itlen, ((DBASE_MAXITEM) * ITSZ));
+    auto *itcnt = new int[global::DBASE_MAXITEM];
+    auto *ocnt = new int[global::DBASE_MAXITEM];
+    auto *itlen = new int[global::DBASE_MAXITEM];
+    bzero((char *) itcnt, ((global::DBASE_MAXITEM) * ITSZ));
+    for (i = 0; i < global::DBASE_MAXITEM; i++) ocnt[i] = -1;
+    bzero((char *) itlen, ((global::DBASE_MAXITEM) * ITSZ));
 
     //count 1 items
     int *buf;
@@ -273,7 +259,7 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
     while (!DCB->eof()) {
         //logger << custid << " " << tid << " " << numitem;
         for (j = 0; j < numitem; j++) {
-            //logger << " " << buf[j] << std::flush;
+            //logger << " " << buf[j] << flush;
             itlen[buf[j]]++;
             if (use_seq && ocnt[buf[j]] != custid) {
                 itcnt[buf[j]]++;
@@ -281,167 +267,150 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
             }
             //if (buf[j] == 17) logger << " " << tid;
         }
-        //logger << std::endl;
+        //logger << endl;
         DCB->get_next_trans(buf, numitem, tid, custid);
     }
-    //logger << std::endl;
+    //logger << endl;
     int maxcustid = custid;
-    logger << "MINMAX " << mincustid << " " << maxcustid << std::endl;
+    logger << "MINMAX " << mincustid << " " << maxcustid << endl;
 
-    int *freqidx = new int[DBASE_MAXITEM];
+    int *freqidx = new int[global::DBASE_MAXITEM];
     int numfreq = 0;
-    for (i = 0; i < DBASE_MAXITEM; i++) {
+    for (i = 0; i < global::DBASE_MAXITEM; i++) {
         if (use_seq) {
-            if (itcnt[i] >= MINSUPPORT) {
-                logger << i << " SUPP " << itcnt[i] << std::endl;
+            if (itcnt[i] >= global::MINSUP_ABS) {
+                logger << i << " SUPP " << itcnt[i] << endl;
                 freqidx[i] = numfreq;
                 numfreq++;
             } else freqidx[i] = -1;
         } else {
-            if (itlen[i] >= MINSUPPORT) {
+            if (itlen[i] >= global::MINSUP_ABS) {
                 freqidx[i] = numfreq;
                 numfreq++;
                 sumsup += itlen[i];
-                sumdiff += (DBASE_NUM_TRANS - itlen[i]);
+                sumdiff += (global::DBASE_NUM_TRANS - itlen[i]);
             } else freqidx[i] = -1;
         }
-        //if (i == 17) logger << " 17 SUP " << itlen[17] << std::endl;
+        //if (i == 17) logger << " 17 SUP " << itlen[17] << endl;
     }
     int *backidx = new int[numfreq];
     numfreq = 0;
-    for (i = 0; i < DBASE_MAXITEM; i++) {
+    for (i = 0; i < global::DBASE_MAXITEM; i++) {
         if (use_seq) {
-            if (itcnt[i] >= MINSUPPORT)
+            if (itcnt[i] >= global::MINSUP_ABS)
                 backidx[numfreq++] = i;
         } else {
-            if (itlen[i] >= MINSUPPORT)
+            if (itlen[i] >= global::MINSUP_ABS)
                 backidx[numfreq++] = i;
         }
     }
 
-    logger << "numfreq " << numfreq << " :  " << " SUMSUP SUMDIFF = " << sumsup << " " << sumdiff << std::endl;
+    logger << "numfreq " << numfreq << " :  " << " SUMSUP SUMDIFF = " << sumsup << " " << sumdiff << endl;
 
-    if (numfreq == 0) return;
+    if (numfreq == 0)
+        return;
 
-    int extarysz = AMEM / numfreq;
+    int extarysz = global::AVAILMEM / numfreq;
     extarysz /= sizeof(int);
-    logger << "EXTRARYSZ " << extarysz << std::endl;
+    logger << "EXTRARYSZ " << extarysz << endl;
     if (extarysz < 2) extarysz = 2;
     ArrayT **extary = new ArrayT *[numfreq];
     for (i = 0; i < numfreq; i++) {
-        extary[i] = new ArrayT(extarysz, num_partitions);
+        extary[i] = new ArrayT(extarysz, cspade_args.num_partitions);
     }
-
 
     char tmpnam[300];
     int plb, pub, pblk;
-    pblk = (int) ceil(((double) (maxcustid - mincustid + 1)) / num_partitions);
-    if (do_invert) {
-        if (num_partitions > 1) {
-            DCB->get_first_blk();
-            DCB->get_next_trans(buf, numitem, tid, custid);
-        }
-        for (j = 0; j < num_partitions; j++) {
-            //construct offsets for 1-itemsets
-            if (num_partitions > 1) {
-                sprintf(tmpnam, "%s.P%d", idxfn, j);
-                plb = j * pblk + mincustid;
-                pub = plb + pblk;
-                if (pub > maxcustid) pub = maxcustid + 1;
-                bzero((char *) itcnt, ((DBASE_MAXITEM) * ITSZ));
-                //bzero((char *)ocnt, ((DBASE_MAXITEM)*ITSZ));
-                for (i = 0; i < DBASE_MAXITEM; i++) ocnt[i] = -1;
-                bzero((char *) itlen, ((DBASE_MAXITEM) * ITSZ));
-                for (; !DCB->eof() && custid < pub;) {
-                    for (i = 0; i < numitem; i++) {
-                        itlen[buf[i]]++;
-                        if (use_seq && ocnt[buf[i]] != custid) {
-                            itcnt[buf[i]]++;
-                            ocnt[buf[i]] = custid;
-                        }
+    pblk = (int) ceil(((double) (maxcustid - mincustid + 1)) / cspade_args.num_partitions);
+    if (cspade_args.num_partitions > 1) {
+        DCB->get_first_blk();
+        DCB->get_next_trans(buf, numitem, tid, custid);
+    }
+    for (j = 0; j < cspade_args.num_partitions; j++) {
+        //construct offsets for 1-itemsets
+        if (cspade_args.num_partitions > 1) {
+            sprintf(tmpnam, "%s.P%d", cspade_args.idxf.c_str(), j);
+            plb = j * pblk + mincustid;
+            pub = plb + pblk;
+            if (pub > maxcustid) pub = maxcustid + 1;
+            bzero((char *) itcnt, ((global::DBASE_MAXITEM) * ITSZ));
+            for (i = 0; i < global::DBASE_MAXITEM; i++) ocnt[i] = -1;
+            bzero((char *) itlen, ((global::DBASE_MAXITEM) * ITSZ));
+            for (; !DCB->eof() && custid < pub;) {
+                for (i = 0; i < numitem; i++) {
+                    itlen[buf[i]]++;
+                    if (use_seq && ocnt[buf[i]] != custid) {
+                        itcnt[buf[i]]++;
+                        ocnt[buf[i]] = custid;
                     }
-                    DCB->get_next_trans(buf, numitem, tid, custid);
                 }
-            } else sprintf(tmpnam, "%s", idxfn);
-            //logger << "100 VAL " << itcnt[100] << std::endl;
-            logger << "OPENED " << tmpnam << std::endl;
-            ofd.open(tmpnam);
-            if (!ofd) {
-                throw std::runtime_error("Can't open out file");
+                DCB->get_next_trans(buf, numitem, tid, custid);
             }
-
-            int file_offset = 0;
-            int null = -1;
-            for (i = 0; i < DBASE_MAXITEM; i++) {
-                //if (i == 17) logger << "LIDX " << i << " " << itlen[i] << std::endl;
-                if (freqidx[i] != -1) {
-                    ofd.write((char *) &file_offset, ITSZ);
-                    extary[freqidx[i]]->set_offset(file_offset, j);
-                    if (use_seq) {
-                        if (use_newformat) file_offset += (2 * itlen[i]);
-                        else file_offset += (2 * itcnt[i] + itlen[i]);
-                    } else {
-                        if (use_diff) file_offset += (DBASE_NUM_TRANS - itlen[i]);
-                        else file_offset += itlen[i];
-                    }
-                } else if (no_minus_off) {
-                    ofd.write((char *) &file_offset, ITSZ);
-                } else ofd.write((char *) &null, ITSZ);
-                //logger << "OFF " << i <<" " << file_offset << std::endl;
-            }
-            logger << "OFF " << i << " " << file_offset << std::endl;
-            ofd.write((char *) &file_offset, ITSZ);
-            ofd.close();
+        } else sprintf(tmpnam, "%s", cspade_args.idxf.c_str());
+        logger << "OPENED " << tmpnam << endl;
+        ofd.open(tmpnam);
+        if (!ofd) {
+            string error_message = "can't open idx file: " + string(tmpnam);
+            throw runtime_error(error_message);
         }
+
+        int file_offset = 0;
+        int null = -1;
+        for (i = 0; i < global::DBASE_MAXITEM; i++) {
+            if (freqidx[i] != -1) {
+                ofd.write((char *) &file_offset, ITSZ);
+                extary[freqidx[i]]->set_offset(file_offset, j);
+                if (use_seq) {
+                    if (cspade_args.use_newformat) file_offset += (2 * itlen[i]);
+                    else file_offset += (2 * itcnt[i] + itlen[i]);
+                } else {
+                    if (cspade_args.use_diff) file_offset += (global::DBASE_NUM_TRANS - itlen[i]);
+                    else file_offset += itlen[i];
+                }
+            } else if (cspade_args.no_minus_off) {
+                ofd.write((char *) &file_offset, ITSZ);
+            } else ofd.write((char *) &null, ITSZ);
+        }
+        logger << "OFF " << i << " " << file_offset << endl;
+        ofd.write((char *) &file_offset, ITSZ);
+        ofd.close();
     }
 
     delete[] ocnt;
     delete[] itlen;
     delete[] itcnt;
 
-    logger << "Wrote Offt " << std::endl;
+    logger << "Wrote Offt " << endl;
 
     int *fidx = new int[numfreq];
-    if (fidx == NULL) {
-        throw std::runtime_error("Can't alloc fidx");
-        exit(errno);
-    }
 
     int ocid = -1;
-    if (do_l2) {
+    if (cspade_args.do_l2) {
         int seqfd, isetfd;
         if (use_seq) {
             if ((seqfd = open("tmpseq", (O_RDWR | O_CREAT | O_TRUNC), 0666)) < 0) {
-                throw std::runtime_error("Can't open out file");
+                string error_message = "can't open tmpseq file: ";
+                throw runtime_error(error_message);
             }
         }
 
         if ((isetfd = open("tmpiset", (O_RDWR | O_CREAT | O_TRUNC), 0666)) < 0) {
-            throw std::runtime_error("Can't open out file");
+            string error_message = "can't open tmpseq file: ";
+            throw runtime_error(error_message);
         }
 
         unsigned char *seq2;
         if (use_seq) {
             seq2 = new unsigned char[numfreq * numfreq];
-            if (seq2 == NULL) {
-                throw std::runtime_error("SEQ MMAP ERROR");
-            }
-            //for (i=0; i < numfreq*numfreq; i++) seq2[i] = 0;
             bzero((char *) seq2, numfreq * numfreq * sizeof(unsigned char));
         }
 
-        unsigned char *itcnt2 = new unsigned char[(numfreq * (numfreq - 1) / 2)];
-        if (itcnt2 == NULL) {
-            throw std::runtime_error("ITCNT MMAP ERROR");
-        }
+        auto *itcnt2 = new unsigned char[(numfreq * (numfreq - 1) / 2)];
         bzero((char *) itcnt2, (numfreq * (numfreq - 1) / 2) * sizeof(unsigned char));
         //for (i=0; i < numfreq*(numfreq-1)/2; i++) itcnt2[i] = 0;
-        char *ocust = new char[(numfreq * (numfreq - 1) / 2)];
-        if (ocust == NULL) {
-            throw std::runtime_error("OCUSt MMAP ERROR");
-        }
+        auto *ocust = new char[(numfreq * (numfreq - 1) / 2)];
         bzero((char *) ocust, (numfreq * (numfreq - 1) / 2) * sizeof(char));
-        int *offsets = new int[numfreq];
+        auto *offsets = new int[numfreq];
         int offt = 0;
         for (i = numfreq - 1; i >= 0; i--) {
             offsets[numfreq - i - 1] = offt;
@@ -464,8 +433,6 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
                             if (extary[idx]->size() == 0) {
                                 fidx[fcnt] = idx;
                                 fcnt++;
-                                //extary[idx]->add(isetfd,tid,use_seq,0);
-                                //extary[idx]->add(isetfd,tid,use_seq,0);
                                 extary[idx]->setitem(0, tid);
                                 extary[idx]->setitem(1, tid);
                                 extary[idx]->setsize(2);
@@ -501,32 +468,34 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
             }
         }
         delete[] ocust;
-        logger << "2-IT " << " " << std::endl;
+        logger << "2-IT " << " " << endl;
 
         //write 2-itemsets counts to file
         int l2cnt = 0;
         if (use_seq) {
-            ofd.open(seqfn);
+            ofd.open(cspade_args.seqf.c_str());
             if (ofd.fail()) {
-                throw std::runtime_error("Can't open seq file");
+                string error_message = "can't open seq file: " + cspade_args.seqf;
+                throw runtime_error(error_message);
             }
             sort_get_l2(l2cnt, seqfd, ofd, backidx, freqidx,
-                        numfreq, offsets, seq2, 1, MINSUPPORT, twoseq);
+                        numfreq, offsets, seq2, 1, global::MINSUP_ABS, cspade_args.twoseq);
 
             ofd.close();
-            logger << "SEQ2 cnt " << l2cnt << std::endl;
+            logger << "SEQ2 cnt " << l2cnt << endl;
         }
         int seqs = l2cnt;
 
-        ofd.open(it2fn);
+        ofd.open(cspade_args.it2f.c_str());
         //if ((fd = open(it2fn, (O_WRONLY|O_CREAT|O_TRUNC), 0666)) < 0){
         if (ofd.fail()) {
-            throw std::runtime_error("Can't open it2 file");
+            string error_message = "can't open it2 file: " + cspade_args.it2f;
+            throw runtime_error(error_message);
         }
         sort_get_l2(l2cnt, isetfd, ofd, backidx, freqidx,
-                    numfreq, offsets, itcnt2, 0, MINSUPPORT, twoseq);
+                    numfreq, offsets, itcnt2, 0, global::MINSUP_ABS, cspade_args.twoseq);
         ofd.close();
-        logger << "SORT " << l2cnt << "  " << std::endl;
+        logger << "SORT " << l2cnt << "  " << endl;
 
         if (use_seq) unlink("tmpseq");
         unlink("tmpiset");
@@ -535,10 +504,7 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
         if (use_seq) delete[] seq2;
     }
 
-    if (do_invert) {
-        do_invert_db(DCB, pblk, extary, numfreq, freqidx, backidx, fidx, mincustid, maxcustid, num_partitions, output,
-                     use_diff, use_newformat, use_seq);
-    }
+    do_invert_db(DCB, pblk, extary, numfreq, freqidx, backidx, fidx, mincustid, maxcustid, use_seq);
 
     delete[] freqidx;
     delete[] backidx;
@@ -551,93 +517,29 @@ void tpose(char *input, char *idxfn, char *it2fn, char *seqfn, char *output, int
  *
  * @return
  */
-std::vector<std::string> _exttpose(const std::string& dbname, int num_partitions, double min_support, bool twoseq, bool use_diff, bool do_l2,
-              bool do_invert, bool use_newformat, int maxmem, bool no_minus_off) {
-    char input[300];       //input file name
-    char output[300];      //output file name
-    char idxfn[300];
-    char inconfn[300];
-    char it2fn[300];
-    char seqfn[300];
+vector<string> exttpose() {
+    using sequence::cspade_args;
     bool use_seq = true;
-
-    int DBASE_NUM_TRANS; //tot trans for assoc, num cust for sequences
-    int DBASE_MAXITEM;   //number of items
-    float DBASE_AVG_TRANS_SZ; //avg trans size
-    float DBASE_AVG_CUST_SZ = 0; //avg cust size for sequences
-    int DBASE_TOT_TRANS; //tot trans for sequences
-
-    std::ostringstream& logger = *_logger;
-
-    sprintf(input, "%s.data", dbname.c_str());
-    sprintf(inconfn, "%s.conf", dbname.c_str());
-    sprintf(output, "%s.tpose", dbname.c_str());
-    sprintf(idxfn, "%s.idx", dbname.c_str());
-    sprintf(it2fn, "%s.2it", dbname.c_str());
-    sprintf(seqfn, "%s.2seq", dbname.c_str());
-
-    logger << "input = " << input << std::endl;
-    logger << "inconfn = " << inconfn << std::endl;
-    logger << "output = " << output << std::endl;
-    logger << "idxfn = " << idxfn << std::endl;
-    logger << "it2fn = " << it2fn << std::endl;
-    logger << "seqfn = " << seqfn << std::endl;
-
-    logger << "num_partitions = " << num_partitions << std::endl;
-    logger << "min_support = " << min_support << std::endl;
-    logger << "twoseq = " << twoseq << std::endl;
-    logger << "use_diff = " << use_diff << std::endl;
-    logger << "do_l2 = " << do_l2 << std::endl;
-    logger << "do_invert = " << do_invert << std::endl;
-    logger << "use_newformat = " << use_newformat << std::endl;
-    logger << "maxmem = " << maxmem << std::endl;
-    logger << "no_minus_off = " << no_minus_off << std::endl;
-
-    if (twoseq) {
+    if (cspade_args.twoseq) {
         use_seq = false;
     }
 
-    long AMEM = maxmem * MEG;
+    logger << "CONF " << global::DBASE_NUM_TRANS << " " << global::DBASE_MAXITEM << " " <<
+           global::DBASE_AVG_TRANS_SZ << " " << global::DBASE_AVG_CUST_SZ << endl;
 
-    int c = open(inconfn, O_RDONLY);
-    if (c < 0) {
-        throw std::runtime_error("ERROR: invalid conf file");
-    }
-    if (use_seq) {
-        read(c, (char *) &DBASE_NUM_TRANS, ITSZ);
-        read(c, (char *) &DBASE_MAXITEM, ITSZ);
-        read(c, (char *) &DBASE_AVG_CUST_SZ, sizeof(float));
-        read(c, (char *) &DBASE_AVG_TRANS_SZ, sizeof(float));
-        read(c, (char *) &DBASE_TOT_TRANS, ITSZ);
-    } else {
-        read(c, (char *) &DBASE_NUM_TRANS, ITSZ);
-        read(c, (char *) &DBASE_MAXITEM, ITSZ);
-        read(c, (char *) &DBASE_AVG_TRANS_SZ, sizeof(float));
-    }
-    logger << "CONF " << DBASE_NUM_TRANS << " " << DBASE_MAXITEM << " " <<
-         DBASE_AVG_TRANS_SZ << " " << DBASE_AVG_CUST_SZ << std::endl;
-
-    close(c);
-
-    if (use_diff) {
-        use_seq = 0;
-        num_partitions = 1;
+    if (cspade_args.use_diff) {
+        use_seq = false;
+        cspade_args.num_partitions = 1;
         logger << "SEQ TURNED OFF and PARTITIONS = 1\n";
     }
-    int MINSUPPORT = (int) (min_support * DBASE_NUM_TRANS + 0.5);
 
-    //ensure that support is at least 2
-    if (!twoseq && MINSUPPORT < 1) MINSUPPORT = 1;
-    logger << "MINSUPPORT " << MINSUPPORT << " " << DBASE_NUM_TRANS << std::endl;
+    tpose(use_seq);
 
-    tpose(input, idxfn, it2fn, seqfn, output, MINSUPPORT, twoseq, DBASE_MAXITEM, DBASE_NUM_TRANS, AMEM, num_partitions,
-          do_invert, use_newformat, use_diff, no_minus_off, do_l2, use_seq);
-
-    std::vector<std::string> retval;
-    retval.push_back(output);
-    retval.push_back(idxfn);
-    retval.push_back(it2fn);
-    retval.push_back(seqfn);
+    vector<string> retval;
+    retval.push_back(cspade_args.binf);
+    retval.push_back(cspade_args.idxf);
+    retval.push_back(cspade_args.it2f);
+    retval.push_back(cspade_args.seqf);
 
     return retval;
 }

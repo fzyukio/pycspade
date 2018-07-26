@@ -1,19 +1,13 @@
 #include <cerrno>
-#include <iostream>
-#include <fstream>
-#include <strstream>
 #include "makebin.h"
 
-#include "utils.h"
 const int lineSize = 8192;
 const int wdSize = 256;
 
-//using namespace std;
 
-
-void convbin(char *inBuf, int inSize, std::ofstream &fout) {
+void convbin(char *inBuf, std::streamsize inSize, ofstream &fout) {
     char inStr[wdSize];
-    std::istrstream ist(inBuf, inSize);
+    istrstream ist(inBuf, inSize);
     int it;
     while (ist >> inStr) {
         it = atoi(inStr);
@@ -21,21 +15,24 @@ void convbin(char *inBuf, int inSize, std::ofstream &fout) {
     }
 }
 
-void convert_bin(const std::string& ifname, const std::string& ofname) {
-    std::ifstream fin(ifname.c_str());
-    std::ofstream fout(ofname.c_str());
+void convert_bin(const string& ifname) {
+    using sequence::cspade_args;
+
+    ifstream fin(ifname.c_str());
+    ofstream fout(cspade_args.binf.c_str());
     char inBuf[lineSize];
-    int inSize;
+    std::streamsize inSize;
     if (!fin) {
-        throw std::runtime_error("cannot open in file");
+        string error_message = "can't open ascii file: " + ifname;
+        throw runtime_error(error_message);
     }
     if (!fout) {
-        throw std::runtime_error("cannot open out file");
+        string error_message = "can't open binary file: " + cspade_args.binf;
+        throw runtime_error(error_message);
     }
 
     while (fin.getline(inBuf, lineSize)) {
         inSize = fin.gcount();
-        //logger << "IN SIZE " << inSize << std::endl;
         convbin(inBuf, inSize, fout);
     }
 }

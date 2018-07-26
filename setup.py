@@ -16,7 +16,7 @@ else:
 
 other_files = ['csrc/{}'.format(x) for x in [
     'Itemset.cc', 'Array.cc', 'ArrayT.cc', 'Eqclass.cc', 'Lists.cc', 'extl2.cc', 'partition.cc', 'maxgap.cc',
-    'calcdb.cc', 'utils.cc'
+    'calcdb.cc', 'makebin.cc', 'getconf.cc', 'exttpose.cc', 'utils.cc'
 ]]
 
 sourcefiles += other_files
@@ -43,7 +43,7 @@ setup(
     ext_modules=ext_modules,
     license='MIT',
     packages=['pycspade'],
-    version='0.0.7',
+    version='0.1.8',
     author=['Mohammed J. Zaki', 'Yukio Fukuzawa'],
     description='C-SPADE Python Implementation',
     long_description=open('README.md').read(),

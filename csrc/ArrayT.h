@@ -1,19 +1,19 @@
-#ifndef __ARRAYT_H
-#define __ARRAYT_H
+#ifndef __ARRAY_T_H
+#define __ARRAY_T_H
 
 #include <cerrno>
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstdlib>
-#include <iostream>
 #include <sys/types.h>
-#include <stdexcept>
 
-//using namespace std;
+#include "utils.h"
+
+using namespace std;
 
 class ArrayT {
 protected:
-    int *theArrayT;
+    int *theArray;
     char theFlg;
     int lastPos;
     unsigned int theSize;
@@ -26,7 +26,7 @@ public:
     ~ArrayT();
 
     int operator[](unsigned int index) {
-        return theArrayT[index];
+        return theArray[index];
     };
 
     char flg() {
@@ -43,7 +43,7 @@ public:
 
     //to be used ony for use_seq
     void setlastpos() {
-        theArrayT[lastPos + 1] = theSize - lastPos - 2;
+        theArray[lastPos + 1] = theSize - lastPos - 2;
         lastPos = theSize;
     }
 
@@ -66,7 +66,7 @@ public:
     }
 
     int *array() {
-        return theArrayT;
+        return theArray;
     }
 
     int size() {
@@ -78,11 +78,11 @@ public:
     }
 
     void setitem(int pos, int item) {
-        theArrayT[pos] = item;
+        theArray[pos] = item;
     }
 
     void additem(int item) {
-        theArrayT[theSize] = item;
+        theArray[theSize] = item;
         theSize++;
     }
 
@@ -90,9 +90,9 @@ public:
         lseek(fd, offset[pos] * sizeof(int), SEEK_SET);
         int wblk = theSize;
         if (wblk > 0) {
-            int res = ::write(fd, (char *) theArrayT, wblk * sizeof(int));
+            int res = ::write(fd, (char *) theArray, wblk * sizeof(int));
             if (res < wblk * sizeof(int)) {
-                throw std::runtime_error("Error writing");
+                throw runtime_error("Error writing");
             }
             offset[pos] += wblk;
         }
@@ -104,16 +104,16 @@ public:
             if (theSize + 2 > totSize) {
                 flushbuf(fd, use_seq, pos);
             }
-            theArrayT[theSize++] = custid;
+            theArray[theSize++] = custid;
         } else {
             if (theSize + 1 > totSize) {
                 flushbuf(fd, use_seq, pos);
             }
         }
-        theArrayT[theSize++] = item;
+        theArray[theSize++] = item;
     }
 };
 
-#endif //__ARRAYT_H
+#endif //__ARRAY_T_H
 
 

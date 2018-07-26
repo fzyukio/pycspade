@@ -4,11 +4,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sys/types.h>
-#include <stdexcept>
-
-//using namespace std;
-
-extern long MEMUSED;
+#include "Lists.h"
 
 class Array {
 protected:
@@ -17,13 +13,12 @@ protected:
     unsigned int totSize;
 public:
 
-    Array(int sz);
+    explicit Array(int sz);
 
     ~Array();
 
     int subsequence(Array *ar);
 
-    //void add (int, unsigned int);
     void add_ext(int val, int off, int *ary) {
         ary[off + theSize] = val;
         theSize++;
@@ -41,11 +36,11 @@ public:
         return totSize;
     }
 
-    void set_totsize(int sz) {
+    void set_totsize(unsigned int sz) {
         totSize = sz;
     }
 
-    void set_size(int sz) {
+    void set_size(unsigned int sz) {
         theSize = sz;
     }
 
@@ -61,11 +56,11 @@ public:
         theArray = ary;
     }
 
-    friend std::ostream &operator<<(std::ostream &outputStream, Array &arr);
+    friend ostream &operator<<(ostream &outputStream, Array &arr);
 
     static int Arraycompare(void *iset1, void *iset2) {
-        Array *it1 = (Array *) iset1;
-        Array *it2 = (Array *) iset2;
+        auto *it1 = (Array *) iset1;
+        auto *it2 = (Array *) iset2;
         return it1->compare(*it2);
     }
 
@@ -80,13 +75,13 @@ public:
     }
 
     void realloc(int newsz) {
-        MEMUSED -= totSize * sizeof(int);
+        global::MEMUSED -= totSize * sizeof(int);
         totSize = newsz;
         theArray = (int *) ::realloc(theArray, totSize * sizeof(int));
-        if (theArray == NULL) {
-            throw std::overflow_error("MEMORY EXCEEDED\n");
+        if (theArray == nullptr) {
+            throw runtime_error("MEMORY EXCEEDED");
         }
-        MEMUSED += totSize * sizeof(int);
+        global::MEMUSED += totSize * sizeof(int);
     }
 
     void compact() {

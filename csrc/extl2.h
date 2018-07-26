@@ -4,7 +4,7 @@
 #include "partition.h"
 #include "Eqclass.h"
 
-#include "utils.h"
+#define ITSZ sizeof(int)
 
 class invdb {
 public:
@@ -24,10 +24,10 @@ public:
 };
 
 
-extern int make_l1_pass(std::ostream& out);
+extern int make_l1_pass();
 
 extern int make_l2_pass();
 
-extern int get_file_l2(char *it2f, char *seqf);
+extern int get_file_l2(const string& it2f, const string& seqf);
 
 #endif //__EXT_H_

@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include "HashTable.h"
 
 
@@ -23,13 +24,12 @@ HashTable::HashTable(int size) {
         }
         i += 2;
     }
-    //logger << "SIZE : "<< theSize << " " << size << std::endl;
     theCells = new Itemset *[theSize];
-    if (theCells == NULL) {
-        throw std::runtime_error("MEMORY EXCEEDED");
+    if (theCells == nullptr) {
+        throw runtime_error("MEMORY EXCEEDED");
     }
     for (i = 0; i < theSize; i++) {
-        theCells[i] = NULL;
+        theCells[i] = nullptr;
     }
     num_find = 0;
     num_probe = 0;
@@ -49,13 +49,26 @@ int HashTable::add(Itemset *item) {
     for (i = 0; i < theSize; i++) {
         pos = hash(hval, i);
         num_probe++;
-        if (theCells[pos] == NULL) {
+        if (theCells[pos] == nullptr) {
             theCells[pos] = item;
             return pos;
         }
     }
 
-    throw std::runtime_error("ERROR: hash table full");
+    ostringstream error;
+
+    error << "ERROR: hash table full: ";
+    error << *item;
+    error << "HVAL : " << hval;
+    error << "PROBE SEQ: ";
+    for (i = 0; i < theSize; i++) {
+        pos = hash(hval, i);
+        error << " " << pos;
+    }
+    error << ".";
+    error << *this;
+
+    throw runtime_error(error.str());
 }
 
 int HashTable::find(Itemset *item) {
@@ -64,7 +77,7 @@ int HashTable::find(Itemset *item) {
     int i;
     for (i = 0; i < theSize; i++) {
         pos = hash(hval, i);
-        if (theCells[pos] == NULL) break;
+        if (theCells[pos] == nullptr) break;
         if (item->compare(*theCells[pos]) == 0) {
             return pos;
         }
@@ -78,7 +91,7 @@ int HashTable::find(Array *item, int len) {
     int i;
     for (i = 0; i < theSize; i++) {
         pos = hash(hval, i);
-        if (theCells[pos] == NULL) break;
+        if (theCells[pos] == nullptr) break;
         if (theCells[pos]->compare(*item, len) == 0) {
             return pos;
         }
@@ -88,14 +101,11 @@ int HashTable::find(Array *item, int len) {
 
 int HashTable::find(Itemset *item, unsigned int bvec, int len) {
     unsigned int hval = hashval(item, bvec);
-    //logger << "LOOKUP: " << *item;
-    //logger << "BVEC : " << bvec << " " << hval << std::endl;
     int pos;
     int i;
     for (i = 0; i < theSize; i++) {
         pos = hash(hval, i);
-        if (theCells[pos] == NULL) break;
-        //logger << "CELL : " << pos << "=" << *theCells[pos];
+        if (theCells[pos] == nullptr) break;
         if (item->compare(*theCells[pos], len, bvec) == 0) {
             return pos;
         }
@@ -105,14 +115,14 @@ int HashTable::find(Itemset *item, unsigned int bvec, int len) {
 
 void HashTable::clear() {
     for (int i = 0; i < theSize; i++) {
-        theCells[i] = NULL;
+        theCells[i] = nullptr;
     }
 }
 
 void HashTable::clear_cells() {
     for (int i = 0; i < theSize; i++) {
         delete theCells[i];
-        theCells[i] = NULL;
+        theCells[i] = nullptr;
     }
 }
 
@@ -127,8 +137,6 @@ unsigned int HashTable::hashval(Itemset *item) {
 
     for (int i = 0; i < item->size() - 1; i++) {
         value += (*item)[i];
-        //value += (*item)[i];
-        //value = 65599*value+(*item)[i];
     }
     value *= (*item)[item->size() - 1];
     return value;
@@ -139,8 +147,6 @@ unsigned int HashTable::hashval(Array *item, int len) {
 
     for (int i = 0; i < len - 1; i++) {
         value += (*item)[i];
-        //value += (*item)[i];
-        //value = 65599*value+(*item)[i];
     }
     value *= (*item)[len - 1];
     return value;
@@ -152,7 +158,6 @@ unsigned int HashTable::hashval(Itemset *item, unsigned int bvec) {
     int last;
     for (; pos < item->size(); pos++) {
         if (GETBIT(bvec, pos)) {
-            //value = 65599*value+(*item)[pos];
             value += (*item)[pos];
             last = pos;
         }
@@ -162,11 +167,11 @@ unsigned int HashTable::hashval(Itemset *item, unsigned int bvec) {
     return value;
 }
 
-std::ostream &operator<<(std::ostream &outputStream, HashTable &hasht) {
+ostream &operator<<(ostream &outputStream, HashTable &hasht) {
     outputStream << "HASH TABLE: Size = " << hasht.theSize << "\n";
     outputStream.flush();
     for (int i = 0; i < hasht.theSize; i++) {
-        if (hasht.theCells[i] == NULL)
+        if (hasht.theCells[i] == nullptr)
             outputStream << "[" << i << "] = 0\n";
         else outputStream << "[" << i << "] = 1\n";
     }

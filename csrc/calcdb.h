@@ -1,5 +1,5 @@
-#ifndef __CALCDB_H
-#define __CALCDB_H
+#ifndef __DATABASE_H
+#define __DATABASE_H
 
 #include <cstdio>
 #include <fstream>
@@ -9,15 +9,15 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <cerrno>
-#include <stdexcept>
 #include "utils.h"
 
-#define DCBBUFSZ 2048
-#define TRANSOFF 3
+
+const int DCBBUFSZ = 2048;
+const int TRANSOFF = 3;
 
 class CalcDb {
 public:
-    CalcDb(char *infile, int buf_sz = DCBBUFSZ);
+    CalcDb(const string& infile, int buf_sz = DCBBUFSZ);
 
     ~CalcDb();
 
@@ -45,13 +45,13 @@ inline void CalcDb::get_first_blk() {
     lseek(fd, 0, SEEK_SET);
     cur_blk_size = (read(fd, (void *) buf, (buf_size * ITSZ))) / ITSZ;
     if (cur_blk_size < 0) {
-        throw std::runtime_error("get_first_blk");
+        throw runtime_error("get_first_blk");
     }
     cur_buf_pos = 0;
 }
 
 inline void CalcDb::get_next_trans(int *&lbuf,
-                                           int &nitems, int &tid, int &cid) {
+                                   int &nitems, int &tid, int &cid) {
     if (cur_buf_pos + TRANSOFF >= cur_blk_size ||
         cur_buf_pos + buf[cur_buf_pos + TRANSOFF - 1] + TRANSOFF > cur_blk_size) {
         if (lseek(fd, 0, SEEK_CUR) == endpos) readall = 1;
@@ -70,7 +70,7 @@ inline void CalcDb::get_next_trans(int *&lbuf,
     }
 }
 
-#endif //__CALCDB_H
+#endif //__DATABASE_H
 
 
 

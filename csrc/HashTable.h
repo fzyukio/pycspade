@@ -47,7 +47,7 @@ public:
         return theSize;
     }
 
-    friend std::ostream &operator<<(std::ostream &, HashTable &);
+    friend ostream &operator<<(ostream &, HashTable &);
 };
 
 

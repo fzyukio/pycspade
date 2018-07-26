@@ -3,7 +3,7 @@
 Dbase_Ctrl_Blk::Dbase_Ctrl_Blk(char *infile, int buf_sz) {
     fd = open(infile, O_RDONLY);
     if (fd < 0) {
-        throw std::invalid_argument("ERROR: InvalidFile -- Dbase_Ctrl_Blk()\n");
+        throw runtime_error("ERROR: InvalidFile -- Dbase_Ctrl_Blk()");
     }
 
     buf_size = buf_sz;
@@ -31,11 +31,10 @@ void Dbase_Ctrl_Blk::get_next_trans_ext(int &numitem, int &tid, int &custid) {
         cur_blk_size = 0;
     }
 
-    res = read(fd, (void *) (buf + cur_blk_size),
-               ((buf_size - cur_blk_size) * ITSZ));
+    res = read(fd, (void *) (buf + cur_blk_size), ((buf_size - cur_blk_size) * ITSZ));
 
     if (res < 0) {
-        throw std::runtime_error("reading in database");
+        throw runtime_error("reading in database");
     }
     cur_blk_size += res / ITSZ;
     if (cur_blk_size > 0) {

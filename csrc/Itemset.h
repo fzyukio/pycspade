@@ -11,7 +11,7 @@
 #define SETBIT(a, v, b)  (((v) != 0) ? ((a) | (01 << (b))): ((a) & ~(01 << (b))))
 #define GETBIT(a, b) ((a) & (01 << (b)))
 
-extern int NUMCLASS;
+extern int global::NUMCLASS;
 
 class Itemset {
 protected:
@@ -21,11 +21,11 @@ protected:
     int *clsSup;
 
 public:
-    Itemset(int it_sz, int ival_sz, int nclass = NUMCLASS);
+    Itemset(int it_sz, int ival_sz, int nclass = global::NUMCLASS);
 
     ~Itemset();
 
-    friend std::ostream &operator<<(std::ostream &outputStream, Itemset &itemset);
+    friend ostream &operator<<(ostream &outputStream, Itemset &itemset);
 
     void intersect_neighbors(Itemset *it1, Itemset *it2);
 
@@ -39,9 +39,7 @@ public:
 
     int subsequence(Itemset *ar);
 
-    void print_seq(int itempl, std::ostream& out);
-
-    void print_idlist();
+    void print_seq(int itempl);
 
     Array *&ival() {
         return theIval;
@@ -64,7 +62,7 @@ public:
     }
 
     void add_ival(Array *ary) {
-        for (unsigned int i = 0; i < ary->size(); i++)
+        for (int i = 0; i < ary->size(); i++)
             theIval->add((*ary)[i]);
     }
 

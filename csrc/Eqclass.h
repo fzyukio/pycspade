@@ -10,10 +10,6 @@
 #define EQCTYP2 2
 #define EQCTYP3 3
 
-class EqGrNode;
-
-extern int NUMCLASS;
-
 class Eqclass {
 private:
     Lists<Itemset *> *theList;
@@ -79,14 +75,6 @@ public:
         theList2->prepend(it);
     }
 
-    void print_template1();
-
-    void print_template2();
-
-    void print_template();
-
-    void print_list(Lists<Itemset *> *ll);
-
     Itemset *uniqsorted(Itemset *it, CMP_FUNC func);
 
     int subseq(Itemset *it);
@@ -123,11 +111,11 @@ public:
 
     int compare(FreqIt *fit, int recursive);
 
-    friend std::ostream &operator<<(std::ostream &outputStream, FreqIt &freq) {
+    friend ostream &operator<<(ostream &outputStream, FreqIt &freq) {
         outputStream << "FREQ : ";
         for (int i = 0; i < freq.seqsz; i++)
             outputStream << " " << freq.seq[i];
-        outputStream << " --- " << freq.templ << std::endl;
+        outputStream << " --- " << freq.templ << endl;
         return outputStream;
     }
 };
@@ -190,7 +178,7 @@ public:
         if (clas == -1) {
             int sum = 0;
             //return sup in all classes
-            for (int i = 0; i < NUMCLASS; i++)
+            for (int i = 0; i < global::NUMCLASS; i++)
                 sum += (*_set_sup[i])[idx];
             return sum;
         } else return (*_set_sup[clas])[idx]; //return sup in class only
@@ -200,7 +188,7 @@ public:
         if (clas == -1) {
             int sum = 0;
             //return sup in all classes
-            for (int i = 0; i < NUMCLASS; i++)
+            for (int i = 0; i < global::NUMCLASS; i++)
                 sum += (*_seq_sup[i])[idx];
             return sum;
         } else return (*_seq_sup[clas])[idx]; //return sup in class only
@@ -217,8 +205,6 @@ public:
     }
 
     void add_element(int el) {
-        //theElements[numElements] = el;
-        //numElements++;
         theElements->add(el);
     }
 
@@ -229,17 +215,9 @@ public:
     int get_element(int pos) {
         return (*theElements)[pos];
     }
-    //void remove_el(int pos)
-    //{
-    //   for (int i=pos; i < numElements-1; i++)
-    //      theElements[i] = theElements[i+1];
-    //   numElements--;
-    //}
 
     void seqsetelements(Array *ary) {
         stheElements = ary;
-        //stotElements = sz;
-        //MEMUSED += sz*sizeof(int);
     }
 
     Array *seqelements() {
@@ -254,7 +232,6 @@ public:
 
     void seqadd_element(int el) {
         stheElements->add(el);
-        //snumElements++;
     }
 
     void seqadd_element(int el, int pos) {
@@ -268,8 +245,6 @@ public:
 
     int find(int it) {
         if (theElements) {
-            //for (int i=0; i < theElements->size(); i++)
-            //   if ((*theElements)[i] == it) return 1;
             return bsearch(0, theElements->size() - 1, theElements->array(), it);
         }
         return -1;
@@ -277,14 +252,12 @@ public:
 
     int seqfind(int it) {
         if (stheElements) {
-            //for (int i=0; i < stheElements->size(); i++)
-            //   if ((*stheElements)[i] == it) return 1;
             return bsearch(0, stheElements->size() - 1, stheElements->array(), it);
         }
         return -1;
     }
 
-    friend std::ostream &operator<<(std::ostream &outputStream, EqGrNode &EQ);
+    friend ostream &operator<<(ostream &outputStream, EqGrNode &EQ);
 };
 
 
@@ -296,8 +269,8 @@ public:
     static int numfreq;
 
     static void init() {
-        itsup = new Array *[NUMCLASS];
-        for (int i = 0; i < NUMCLASS; i++) itsup[i] = new Array(2);
+        itsup = new Array *[global::NUMCLASS];
+        for (int i = 0; i < global::NUMCLASS; i++) itsup[i] = new Array(2);
     }
 
     static void add_sup(int sup, int cls) {
@@ -307,7 +280,7 @@ public:
     static int get_sup(int it, int cls = -1) {
         if (cls == -1) {
             int sum = 0;
-            for (int i = 0; i < NUMCLASS; i++)
+            for (int i = 0; i < global::NUMCLASS; i++)
                 sum += (*itsup[i])[fidx[it]];
             return sum;
         } else return (*itsup[cls])[fidx[it]];

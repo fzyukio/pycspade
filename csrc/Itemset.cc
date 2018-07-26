@@ -2,37 +2,29 @@
 #include "Itemset.h"
 #include "utils.h"
 
-extern char print_tidlist;
-
 Itemset::Itemset(int it_sz, int ival_sz, int nclass) {
-    //logger << "ITALLOC " << MEMUSED;
     theItemset = new Array(it_sz);
-    if (theItemset == NULL) {
-        throw std::runtime_error("memory:: Itemset");
+    if (theItemset == nullptr) {
+        throw runtime_error("memory:: Itemset");
     }
     theIval = new Array(ival_sz);
-    if (theIval == NULL) {
-        throw std::runtime_error("memory:: Ival");
+    if (theIval == nullptr) {
+        throw runtime_error("memory:: Ival");
     }
 
-    //for (int i=0; i < ival_sz; i++)
-    //   theIval[i] = NULL;
     theSupport = 0;
     clsSup = new int[nclass];
     for (int i = 0; i < nclass; i++) clsSup[i] = 0;
 
-    MEMUSED += sizeof(Itemset) + nclass * sizeof(int);
-    //logger << " -- " << MEMUSED << std::endl;
+    global::MEMUSED += sizeof(Itemset) + nclass * sizeof(int);
 }
 
 Itemset::~Itemset() {
-    //logger << "ITDEL " << MEMUSED;
     if (theItemset) delete theItemset;
     if (theIval) delete theIval;
-    theItemset = NULL;
+    theItemset = nullptr;
     theSupport = 0;
-    MEMUSED -= sizeof(Itemset);
-    //logger << " -- " << MEMUSED << std::endl;
+    global::MEMUSED -= sizeof(Itemset);
 }
 
 int Itemset::compare(Itemset &ar2) {
@@ -95,7 +87,7 @@ int Itemset::subsequence(Itemset *ar) {
     return 1;
 }
 
-std::ostream &operator<<(std::ostream &outputStream, Itemset &itemset) {
+ostream &operator<<(ostream &outputStream, Itemset &itemset) {
     outputStream << "ITEM: ";
     outputStream << *itemset.theItemset;
     outputStream << "(" << itemset.theSupport << ")";
@@ -103,44 +95,22 @@ std::ostream &operator<<(std::ostream &outputStream, Itemset &itemset) {
     return outputStream;
 }
 
-void Itemset::print_seq(int itempl, std::ostream& out) {
+void Itemset::print_seq(int itempl) {
     int i;
     int sz = size();
-    out << (*theItemset)[0] << " ";
+    mined << (*theItemset)[0] << " ";
+
     for (i = 1; i < sz - 1; i++) {
         if (GETBIT(itempl, sz - 1 - i))
-            out << "-> ";
-        out << (*theItemset)[i] << " ";
+            mined << "-> ";
+        mined << (*theItemset)[i] << " ";
     }
     if (GETBIT(itempl, sz - 1 - i))
-        out << "-> ";
-    out << (*theItemset)[sz - 1] << " ";
-    out << "-- " << theSupport;
-    for (i = 0; i < NUMCLASS; i++)
-        out << " " << clsSup[i];
-    out << " ";
-    if (print_tidlist) print_idlist();
-    out << std::endl;
+        mined << "-> ";
+    mined << (*theItemset)[sz - 1] << " ";
+    mined << "-- " << theSupport;
+    for (i = 0; i < global::NUMCLASS; i++)
+        mined << " " << clsSup[i];
+    mined << " ";
+    mined << endl;
 }
-
-void Itemset::print_idlist() {
-    std::ostringstream& logger = *_logger;
-    int i, cid, cnt;
-
-    if (theIval && theIval->size() > 0) {
-        cid = (*theIval)[0];
-        cnt = 0;
-        for (i = 0; i < theIval->size();) {
-            if (cid == (*theIval)[i]) {
-                cnt++;
-                i += 2;
-            } else {
-                logger << cid << " " << cnt << " ";
-                cid = (*theIval)[i];
-                cnt = 0;
-            }
-        }
-        logger << cid << " " << cnt;
-    }
-}
-
