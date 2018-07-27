@@ -76,7 +76,7 @@ def cpp_cspade(filename, support=3, maxsize=None, maxlen=None, mingap=None, maxg
              -summary: equivalent to the content of summary.out
              -memlog: logging of memory usage
     """
-    assert (support > 0 and (support < 1 or (support > 1 and float(support).is_integer()))), \
+    assert (support > 0 and (support < 1 or (support >= 1 and float(support).is_integer()))), \
            'support must be a floating point in range [0-1] (percentage) or an int >= 1 (absolute)'
     avaimem_mb = 128
 

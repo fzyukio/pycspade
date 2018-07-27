@@ -43,7 +43,7 @@ setup(
     ext_modules=ext_modules,
     license='MIT',
     packages=['pycspade'],
-    version='0.1.8',
+    version='0.1.9',
     author=['Mohammed J. Zaki', 'Yukio Fukuzawa'],
     description='C-SPADE Python Implementation',
     long_description=open('README.md').read(),

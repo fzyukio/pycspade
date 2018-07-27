@@ -1361,7 +1361,7 @@ static PyObject *__pyx_pf_8pycspade_6cspade_cpp_cspade(CYTHON_UNUSED PyObject *_
   /* "pycspade/cspade.pyx":79
  *              -memlog: logging of memory usage
  *     """
- *     assert (support > 0 and (support < 1 or (support > 1 and float(support).is_integer()))), \             # <<<<<<<<<<<<<<
+ *     assert (support > 0 and (support < 1 or (support >= 1 and float(support).is_integer()))), \             # <<<<<<<<<<<<<<
  *            'support must be a floating point in range [0-1] (percentage) or an int >= 1 (absolute)'
  *     avaimem_mb = 128
  */
@@ -1383,7 +1383,7 @@ static PyObject *__pyx_pf_8pycspade_6cspade_cpp_cspade(CYTHON_UNUSED PyObject *_
       __pyx_t_1 = __pyx_t_3;
       goto __pyx_L3_bool_binop_done;
     }
-    __pyx_t_2 = PyObject_RichCompare(__pyx_v_support, __pyx_int_1, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 79, __pyx_L1_error)
+    __pyx_t_2 = PyObject_RichCompare(__pyx_v_support, __pyx_int_1, Py_GE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 79, __pyx_L1_error)
     __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 79, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     if (__pyx_t_3) {
@@ -1426,7 +1426,7 @@ static PyObject *__pyx_pf_8pycspade_6cspade_cpp_cspade(CYTHON_UNUSED PyObject *_
   #endif
 
   /* "pycspade/cspade.pyx":81
- *     assert (support > 0 and (support < 1 or (support > 1 and float(support).is_integer()))), \
+ *     assert (support > 0 and (support < 1 or (support >= 1 and float(support).is_integer()))), \
  *            'support must be a floating point in range [0-1] (percentage) or an int >= 1 (absolute)'
  *     avaimem_mb = 128             # <<<<<<<<<<<<<<
  * 

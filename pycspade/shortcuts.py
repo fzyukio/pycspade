@@ -18,34 +18,72 @@ class Item:
 
 
 class Sequence:
-    def __init__(self, support):
+    def __init__(self, name, xname, yname, noccurs):
         self.items = []
-        self.support = support
+        self.name = name
+        self.xname = xname
+        self.yname =yname
+        self.noccurs = noccurs
+        self.confidence = None
+        self.lift = None
 
     def add_item(self, item):
         self.items.append(item)
 
     def __repr__(self):
-        return '{} - [{}]'.format('->'.join(list(map(str, self.items))), self.support)
+        return '{} - [{}]'.format('->'.join(list(map(str, self.items))), self.noccurs)
 
 
 def decode_results(result):
+    occurrences = {}
+    lifts = {}
+    confidences = {}
+
     mined = result['mined']
-    nseqs = result['nsequences']
     lines = mined.strip().decode('latin-1').split('\n')
+    lines.sort()
     sequences = []
     for line in lines:
         if '0' <= line[0] <= '9':
             _sequence, stats = line.split(' -- ')
             _items = _sequence.split(' -> ')
-            _support = int(stats[:stats.index(' ')])
+            noccurs = int(stats[:stats.index(' ')])
+            # lift = None
 
-            sequence = Sequence(_support)
+            if len(_items) > 1:
+                x_item = ' -> '.join(_items[:-1])
+                y_item = _items[-1]
+            else:
+                x_item = None
+                y_item = None
+
+            occurrences[_sequence] = noccurs
+            sequence = Sequence(_sequence, x_item, y_item, noccurs)
+
             for _item in _items:
                 _elements = list(map(int, _item.split(' ')))
                 item = Item(_elements)
                 sequence.add_item(item)
             sequences.append(sequence)
+
+    # Second pass
+    for sequence in sequences:
+        if sequence.lift is not None:
+            continue
+        x_item = sequence.xname
+        y_item = sequence.yname
+
+        x_noccurs = occurrences.get(x_item, None)
+        y_noccurs = occurrences.get(y_item, None)
+
+        if x_noccurs is not None:
+            sequence.confidence = sequence.noccurs / x_noccurs
+            confidences[sequence.name] = sequence.confidence
+
+            if y_noccurs is not None:
+                sequence.lift = noccurs / (x_noccurs * y_noccurs)
+                lifts[sequence.name] = sequence.lift
+
     result['mined_objects'] = sequences
 
 
@@ -56,7 +94,7 @@ def cspade(filename=None, data=None, support=3, maxsize=None, maxlen=None, minga
     :param data: raw data as list of transactions, must be given if filename is None
     :param support: is interpreted as the threshold of mimimum normalised support if within [0, 1]:
                          if > 1: interpreted as the threshold of absolute support (e.g. 50 over 100 transactions)
-    :param maxsize: an integer value specifying the maximum number of items of an element of a sequence (default=100)
+    :param maxsize: an integer value specifying the maximum number of items of a sequence (default=100)
     :param maxlen: an integer value specifying the maximum number of elements of a sequence (default=100)
     :param mingap: an integer value specifying the minimum time difference between consecutive elements of a sequence
     :param maxgap: an integer value specifying the maximum time difference between consecutive elements of a sequence
