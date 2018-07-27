@@ -38,6 +38,7 @@ def decode_results(result):
     occurrences = {}
     lifts = {}
     confidences = {}
+    nseqs = result['nsequences']
 
     mined = result['mined']
     lines = mined.strip().decode('latin-1').split('\n')
@@ -81,7 +82,7 @@ def decode_results(result):
             confidences[sequence.name] = sequence.confidence
 
             if y_noccurs is not None:
-                sequence.lift = noccurs / (x_noccurs * y_noccurs)
+                sequence.lift = sequence.noccurs * nseqs / (x_noccurs * y_noccurs)
                 lifts[sequence.name] = sequence.lift
 
     result['mined_objects'] = sequences
