@@ -124,8 +124,7 @@ def cspade(filename=None, data=None, support=3, maxsize=None, maxlen=None, minga
     try:
         retval = cpp_cspade(filename, support, maxsize, maxlen, mingap, maxgap, decode=False)
         decode_results(retval)
+        return retval
     finally:
         if data:
             os.remove(filename)
-
-    return retval

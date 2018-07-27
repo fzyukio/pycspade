@@ -128,6 +128,8 @@ extern int cmp2it(const void *a, const void *b);
 
 struct result_t {
     int nsequences;
+    bool success;
+    string error;
     string mined;
     string logger;
     string summary;

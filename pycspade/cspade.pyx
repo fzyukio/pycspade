@@ -14,6 +14,8 @@ cdef extern from "../csrc/utils.h":
 cdef extern from "../csrc/utils.h":
     cdef struct result_t:
         int nsequences;
+        bool success;
+        c_string error;
         c_string mined;
         c_string logger;
         c_string summary;
@@ -52,7 +54,7 @@ cdef extern from "../csrc/utils.h" namespace "sequence":
 
 
 cdef extern from "../csrc/sequence.cc":
-    result_t cspade(c_string asciifile, arg_t& _args)  except +
+    result_t cspade(c_string asciifile, arg_t& _args)
 
 
 cdef extern from "../csrc/sequence.cc" namespace "sequence":
@@ -124,16 +126,17 @@ def cpp_cspade(filename, support=3, maxsize=None, maxlen=None, mingap=None, maxg
 
     cdef result = cspade(filename, args)
 
-    if decode:
-        result['mined'] = result['mined'].decode('latin-1').split('\n')
-        result['logger'] = result['logger'].decode('latin-1').split('\n')
-        result['summary'] = result['summary'].decode('latin-1').split('\n')
-        result['memlog'] = result['memlog'].decode('latin-1').split('\n')
-
     tmp_files = [args.binf, args.conf, args.idxf, args.it2f, args.dataf, args.seqf, args.classf]
     for tmp_file in tmp_files:
         if os.path.isfile(tmp_file):
             os.remove(tmp_file)
 
-    return result
-
+    if result['success']:
+        if decode:
+            result['mined'] = result['mined'].decode('latin-1').split('\n')
+            result['logger'] = result['logger'].decode('latin-1').split('\n')
+            result['summary'] = result['summary'].decode('latin-1').split('\n')
+            result['memlog'] = result['memlog'].decode('latin-1').split('\n')
+        return result
+    else:
+        raise RuntimeError(result['error'].decode('latin-1'))

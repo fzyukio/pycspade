@@ -45,7 +45,7 @@ namespace sequence {
     }
 
 
-    arg_t& populate_names(arg_t &_args) {
+    arg_t &populate_names(arg_t &_args) {
         _args.binf = _args.name + ".data";
         _args.dataf = _args.name + ".tpose";
         _args.idxf = _args.name + ".idx";
@@ -83,8 +83,7 @@ namespace sequence {
         if (cspade_args.min_support < 1) {
             global::MINSUP_PER = cspade_args.min_support;
             global::MINSUP_ABS = static_cast<int>(lround(global::MINSUP_PER * global::DBASE_NUM_TRANS));
-        }
-        else {
+        } else {
             global::MINSUP_ABS = static_cast<int>(cspade_args.min_support);
             global::MINSUP_PER = static_cast<double >(global::MINSUP_ABS) / global::DBASE_NUM_TRANS;
         }
@@ -454,14 +453,14 @@ namespace sequence {
             if (!sbvec[i]) {
                 global::L2pruning++;
                 mined << "PRUNE_L2 " << it << " -1 " << global::eqgraph[it]->seqget_element(i)
-                       << " " << global::eqgraph[it]->get_seqsup(i) << endl;
+                      << " " << global::eqgraph[it]->get_seqsup(i) << endl;
             }
 
         for (i = 0; i < global::eqgraph[it]->num_elements(); i++)
             if (!ibvec[i]) {
                 global::L2pruning++;
                 mined << "PRUNE_L2 " << it << " " << global::eqgraph[it]->get_element(i)
-                       << " " << global::eqgraph[it]->get_sup(i) << endl;
+                      << " " << global::eqgraph[it]->get_sup(i) << endl;
             }
         return rval;
     }
@@ -1104,19 +1103,37 @@ namespace sequence {
 }
 
 
-result_t cspade(const string &asciifile, sequence::arg_t& _args) {
+result_t cspade(const string &asciifile, sequence::arg_t &_args) {
     sequence::cspade_args = _args;
-    convert_bin(asciifile);
-    create_conf(false);
-    sequence::populate_global();
-    exttpose();
-    sequence::mine();
     result_t result;
-    result.mined = mined.str();
-    result.logger = logger.str();
-    result.summary = summary.str();
-    result.memlog = memlog.str();
-    result.nsequences = global::DBASE_NUM_TRANS;
+
+    try {
+        convert_bin(asciifile);
+        create_conf(false);
+        sequence::populate_global();
+        exttpose();
+        sequence::mine();
+        result.success = true;
+        result.mined = mined.str();
+        result.logger = logger.str();
+        result.summary = summary.str();
+        result.memlog = memlog.str();
+        result.nsequences = global::DBASE_NUM_TRANS;
+    }
+    catch (std::exception &error) {
+        result.success = false;
+        result.error = error.what();
+    }
+
+    // Clear the stringstream otherwise the next run will get duplicated result
+    mined.str(std::string());
+    mined.clear();
+    logger.str(std::string());
+    logger.clear();
+    summary.str(std::string());
+    summary.clear();
+    memlog.str(std::string());
+    memlog.clear();
     return result;
 }
 
