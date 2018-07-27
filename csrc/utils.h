@@ -12,6 +12,7 @@
 #include <vector>
 #include <stdexcept>
 #include <strstream>
+#include <cstring>
 
 enum {
     Pruning_No = 0, Pruning_L2 = 1, Pruning_Zero = 2, Pruning_Follow = 4
@@ -23,7 +24,11 @@ const int ITSZ = sizeof(int);
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
 #ifndef INFINITY
-#define INFINITY INT_MAX
+#define INFINITY 2147483647
+#endif
+
+#ifndef bzero
+#define bzero(b,len) (memset((b), '\0', (len)), (void) 0)
 #endif
 
 //join type
@@ -88,8 +93,7 @@ namespace sequence {
 
         int num_partitions = 1;
         double min_support = 2;
-//        int min_support_all = -1;
-        int use_ascending = -2;
+        int use_ascending = -1;
         bool use_class = false;
         bool do_l2 = false;
         bool use_hash = false;
@@ -97,7 +101,8 @@ namespace sequence {
         double maxmem = 128;
         bool recursive = false;
         int pruning_type = Pruning_No;
-        int max_gap = INT_MAX;
+        int max_gap = 2147483647;
+        bool use_window = false;
         int max_seq_len = 100;
         int max_iset_len = 100;
 

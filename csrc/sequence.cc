@@ -1124,7 +1124,7 @@ int main(int argc, char **argv) {
     sequence::arg_t _args;
     _args.name = "testdata/bb";
     _args.num_partitions = 1;
-    _args.min_support = 100;
+    _args.min_support = 2;
     _args.do_l2 = true;
     _args.recursive = true;
     _args.max_iset_len = 3;
@@ -1132,10 +1132,10 @@ int main(int argc, char **argv) {
 
     _args = sequence::populate_names(_args);
 
-    auto outcome = cspade("testdata/bb.txt", _args);
+    auto outcome = cspade("testdata/zaki.txt", _args);
     cout << outcome.mined;
-    cout << outcome.logger;
-    cout << outcome.summary;
-    cout << outcome.memlog;
-    cout << outcome.nsequences;
+//    cout << outcome.logger;
+//    cout << outcome.summary;
+//    cout << outcome.memlog;
+//    cout << outcome.nsequences;
 }
