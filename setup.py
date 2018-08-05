@@ -1,5 +1,4 @@
 from setuptools import setup, Extension
-from Cython.Distutils import build_ext
 from codecs import open
 
 try:
@@ -43,7 +42,7 @@ setup(
     ext_modules=ext_modules,
     license='MIT',
     packages=['pycspade'],
-    version='0.2.1',
+    version='0.3.2',
     author=['Mohammed J. Zaki', 'Yukio Fukuzawa'],
     description='C-SPADE Python Implementation',
     long_description=open('README.md').read(),

@@ -18,24 +18,33 @@ class Item:
 
 
 class Sequence:
-    def __init__(self, name, xname, yname, noccurs):
+    def __init__(self, name, noccurs):
         self.items = []
         self.name = name
-        self.xname = xname
-        self.yname =yname
         self.noccurs = noccurs
+        self.accum_occurs = noccurs
         self.confidence = None
         self.lift = None
+        self.up_to_prev = None
+        self.last_child = None
+        self.frm_second = None
+        self.up_to_prev_str = None
+        self.last_child_str = None
+        self.frm_second_str = None
 
     def add_item(self, item):
         self.items.append(item)
+
+    def accumulate_occurs(self, child_occurs):
+            self.accum_occurs += child_occurs
+            if self.frm_second:
+                self.frm_second.accumulate_occurs(child_occurs)
 
     def __repr__(self):
         return '{} - [{}]'.format('->'.join(list(map(str, self.items))), self.noccurs)
 
 
 def decode_results(result):
-    occurrences = {}
     lifts = {}
     confidences = {}
     nseqs = result['nsequences']
@@ -43,49 +52,45 @@ def decode_results(result):
     mined = result['mined']
     lines = mined.strip().decode('latin-1').split('\n')
     lines.sort()
-    sequences = []
+    sequences = {}
     for line in lines:
         if '0' <= line[0] <= '9':
-            _sequence, stats = line.split(' -- ')
-            _items = _sequence.split(' -> ')
+            sequence_str, stats = line.split(' -- ')
+            item_strs = sequence_str.split(' -> ')
             noccurs = int(stats[:stats.index(' ')])
-            # lift = None
 
-            if len(_items) > 1:
-                x_item = ' -> '.join(_items[:-1])
-                y_item = _items[-1]
-            else:
-                x_item = None
-                y_item = None
+            sequence = Sequence(sequence_str, noccurs)
+            if len(item_strs) > 1:
+                sequence.up_to_prev_str = ' -> '.join(item_strs[:-1])
+                sequence.last_child_str = item_strs[-1]
+                sequence.frm_second_str = ' -> '.join(item_strs[1:])
 
-            occurrences[_sequence] = noccurs
-            sequence = Sequence(_sequence, x_item, y_item, noccurs)
-
-            for _item in _items:
+            for _item in item_strs:
                 _elements = list(map(int, _item.split(' ')))
                 item = Item(_elements)
                 sequence.add_item(item)
-            sequences.append(sequence)
+            sequences[sequence_str] = sequence
 
     # Second pass
-    for sequence in sequences:
-        if sequence.lift is not None:
-            continue
-        x_item = sequence.xname
-        y_item = sequence.yname
+    for sequence in sequences.values():
+        sequence.up_to_prev = up_to_prev = sequences.get(sequence.up_to_prev_str, None)
+        sequence.last_child = last_child = sequences.get(sequence.last_child_str, None)
+        sequence.frm_second = sequences.get(sequence.frm_second_str, None)
 
-        x_noccurs = occurrences.get(x_item, None)
-        y_noccurs = occurrences.get(y_item, None)
-
-        if x_noccurs is not None:
-            sequence.confidence = sequence.noccurs / x_noccurs
+        if up_to_prev is not None:
+            sequence.confidence = sequence.noccurs / up_to_prev.noccurs
             confidences[sequence.name] = sequence.confidence
 
-            if y_noccurs is not None:
-                sequence.lift = sequence.noccurs * nseqs / (x_noccurs * y_noccurs)
+            if last_child is not None:
+                sequence.lift = sequence.noccurs * nseqs / (up_to_prev.noccurs * last_child.noccurs)
                 lifts[sequence.name] = sequence.lift
 
-    result['mined_objects'] = sequences
+    # Third pass - to calculate accummulated occurrence counts
+    for sequence in sequences.values():
+        if sequence.frm_second is not None:
+            sequence.frm_second.accumulate_occurs(sequence.noccurs)
+
+    result['mined_objects'] = sequences.values()
 
 
 def cspade(filename=None, data=None, support=3, maxsize=None, maxlen=None, mingap=None, maxgap=None):
