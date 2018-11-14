@@ -38,7 +38,7 @@ followed by the element, space separated
 Let's call this file `data.txt`. You will call cspade as following:
 ```python
 from pycspade import cspade
-seq, log = cspade('test.ascii.data')
+seq, log = cspade('data.txt')
 ```
 
 The result `seq` is a string, that have multiple rows and looks like this:
